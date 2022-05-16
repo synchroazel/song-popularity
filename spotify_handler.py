@@ -53,6 +53,29 @@ class SpotifyHandler:
         return {'monthly_listeners': monthly_listeners,
                 'top_tracks': top_tracks}
 
+    def get_artist_albums_ids(self, artist_id): # NOT SURE HERE if we should do some filtering or this tokenization???
+        albums_info = self.sp.artist_albums(artist_id, limit = 50)
+        ret = []
+        for item in albums_info['items']:
+            ret.append(item['id'])
+        return ret #a list with albums ids
+
+    def get_songs_ids_by_album(self, album_id):
+        songs = self.sp.album_tracks(album_id, limit = 50)
+        ret = []
+        for song in songs['items']:
+            ret.append(song["id"])
+        return ret
+
+    def get_song_id_by_name_and_artist(self, song_name, artist_name):
+        info = self.sp.search(q="artist:" + artist_name + " track:" + song_name, type="track")
+        return info['tracks']['items'][0]['album']['id']
+
+    def get_artist_info(self, artist_id):
+        artist = self.sp.artist(artist_id)
+        return {"followers": int(artist['followers']['total']),
+                "popularity_index": int(artist["popularity"])}
+
 
 # %% TESTING .get_top_tracks()
 
@@ -65,6 +88,22 @@ pprint(
     sp.get_top_tracks(url1)
 )
 
+# %% TESTING .get_artist_info
+pprint(sp.get_artist_info("26VFTg2z8YR0cCuwLzESi2"))
+
+print()
+# %% TESTING .get_song_id_by_name_and_artist
+pprint(sp.get_song_id_by_name_and_artist("Impossible", "James Arthur"))
+
+print()
+# %% TESTING .get_songs_ids_by_album
+pprint(sp.get_songs_ids_by_album("3pfiqQljVzq48rfw0bNdpz"))
+
+print()
+# %% TESTING .get_artist_albums_ids
+pprint(sp.get_artist_albums_ids("1vCWHaC5f2uS3yhpwWbIA6"))
+
+print()
 # %% TESTING .get_audio_analysis()
 
 track_id = '0vFOzaXqZHahrZp6enQwQb'  # Money - Pink Floyd
