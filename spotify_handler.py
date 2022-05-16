@@ -3,6 +3,8 @@ import spotipy
 from bs4 import BeautifulSoup
 from spotipy.oauth2 import SpotifyClientCredentials
 
+from pprint import pprint  # just for testing purposes, not in the final module
+
 credentials = SpotifyClientCredentials(client_id='cc9b11f2d73045ac954aa575677feba5',
                                        client_secret='2925a27703d3423b93be7082192e4bb9')
 
@@ -12,9 +14,26 @@ class SpotifyHandler:
     def __init__(self, credentials):
         self.sp = spotipy.Spotify(client_credentials_manager=credentials)
 
+    def get_audio_analysis(self, track_id):
+        '''
+        Get a number of features from a track, given its id.
+        :param track_id: track_id of the song to analyse
+        :return: dict with a number of features regarding given song
+        '''
+
+        r = self.sp.audio_analysis('0vFOzaXqZHahrZp6enQwQb')
+
+        excluded = ('codestring', 'code_version',
+                    'echoprintstring', 'echoprint_version',
+                    'synchstring', 'synch_version',
+                    'rhythmstring', 'rhythm_version')
+
+        return {key: value for key, value in r['track'].items() if key not in excluded}
+
     def get_top_tracks(self, artist_url):
         '''
         Get an artist's monthly listeners and their top 5 tracks.
+        :param artist_url: url of the artist's spotify page
         :return: dict with 'monthly_listeners' and tuples (track, views) of top-5 tracks
         '''
 
@@ -35,13 +54,23 @@ class SpotifyHandler:
                 'top_tracks': top_tracks}
 
 
-# %% TESTING
-
-from pprint import pprint  # just for testing purposes, not in the final module
+# %% TESTING .get_top_tracks()
 
 url1 = 'https://open.spotify.com/artist/26VFTg2z8YR0cCuwLzESi2'  # Halsey spotify page
 url2 = 'https://open.spotify.com/artist/1vCWHaC5f2uS3yhpwWbIA6'  # AVICII spotify page
 
 sp = SpotifyHandler(credentials)
 
-pprint(sp.get_top_tracks(url1))
+pprint(
+    sp.get_top_tracks(url1)
+)
+
+# %% TESTING .get_audio_analysis()
+
+track_id = '0vFOzaXqZHahrZp6enQwQb'  # Money - Pink Floyd
+
+sp = SpotifyHandler(credentials)
+
+pprint(
+    sp.get_audio_analysis(track_id)
+)

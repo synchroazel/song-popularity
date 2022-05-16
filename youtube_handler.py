@@ -4,6 +4,8 @@ from datetime import datetime
 from apiclient.discovery import build
 from tqdm import tqdm
 
+from pprint import pprint  # just for testing purposes, not in the final module
+
 api_key = 'AIzaSyBrwNTSinLqhT7p-cOlVkzyUhkc5JAT9qM'
 client = '168166509565-kl2ki885efpiff8h64v8c18npguq3ijj.apps.googleusercontent.com'
 client_secret = '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'
@@ -61,13 +63,23 @@ class YoutubeHandler:
         return info
 
 
-# %% TESTING
-
-from pprint import pprint  # just for testing purposes, not in the final module
+# %% TESTING .search_by_id()
 
 yt_handler = YoutubeHandler(api_key)
 
 song_id1 = 'rLoGGMbF-YQ'  # Jovanotti - I love you baby
 song_id2 = 'MA_5P3u0apQ'  # Mahmood & Blanco - Brividi
 
-pprint(yt_handler.search_by_id(song_id1))
+pprint(
+    yt_handler.search_by_id(song_id1)
+)
+
+# %% TESTING .search_by_keyword()
+
+yt_handler = YoutubeHandler(api_key)
+
+query = 'Jovanotti'  # an Italian singer
+
+pprint(
+    yt_handler.search_by_keyword(query, 100)
+)
