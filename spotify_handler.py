@@ -11,7 +11,7 @@ credentials = SpotifyClientCredentials(client_id='cc9b11f2d73045ac954aa575677feb
 
 class SpotifyHandler:
 
-    def __init__(self, credentials):
+    def __init__(self, credentials=credentials):
         self.sp = spotipy.Spotify(client_credentials_manager=credentials)
 
     def get_audio_analysis(self, track_id):

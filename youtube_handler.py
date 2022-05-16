@@ -16,7 +16,7 @@ class YoutubeHandler:
     TODO maybe not definitive
     '''
 
-    def __init__(self, api_key):
+    def __init__(self, api_key=api_key):
         self.api_key = api_key
         self.youtube = build('youtube', 'v3', developerKey=api_key)
 
