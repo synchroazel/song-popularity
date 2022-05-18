@@ -44,5 +44,6 @@ Thumbs.db
 ########################
 .ipynb_checkpoints/
 .cache
+**/__pycache__
 testing_ground.ipynb
 
