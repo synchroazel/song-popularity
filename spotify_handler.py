@@ -12,13 +12,19 @@ class SpotifyHandler:
     def __init__(self, credentials=credentials):
         self.sp = spotipy.Spotify(client_credentials_manager=credentials)
 
-    def get_analysis_by_track_id(self, track_id):
-        '''
-        Get a number of features from a track, given its id.
-        :param track_id: track_id of the song to analyse
-        :return: dict with a number of features regarding given song
-        '''
+    def get_genres_by_track_id(self, track_id):
+        r = self.sp.track(track_id)
 
+        if self.sp.album(r['album']['id'])['genres'].__len__() != 0:
+            return self.sp.album(r['album']['id'])['genres']
+        else:
+            print('debug')
+            return self.sp.artist(r['artists'][0]['id'])['genres']
+
+    def get_features_by_track_id(self, track_id):
+        return self.sp.audio_features(track_id)[0]
+
+    def get_analysis_by_track_id(self, track_id):
         r = self.sp.audio_analysis(track_id)
 
         excluded = ('codestring', 'code_version',
@@ -29,21 +35,13 @@ class SpotifyHandler:
         return {key: value for key, value in r['track'].items() if key not in excluded}
 
     def get_top_tracks_by_artist_url(self, artist_url):
-        """
-        Get an artist's monthly listeners and their top 5 tracks.
-        :param artist_url: url of the artist's spotify page
-        :return: dict with 'monthly_listeners' and tuples (track, views) of top-5 tracks
-        """
-
         r = requests.get(artist_url)
-
         soup = BeautifulSoup(r.text, features="html5lib")
 
         monthly_listeners = soup.findAll('div', {'class': 'Type__TypeElement-goli3j-0 edDNNU ovtJYocZljdWcU1FLBL5'})[0]
         monthly_listeners = int(monthly_listeners.text.split(' ')[0].replace(',', ''))
 
         top_tracks = list()
-
         for item in soup.findAll('div', {'class': 'Row__Container-sc-brbqzp-0 jKreJT'}):
             top_tracks.append((item.findAll('span')[0].text,
                                int(item.findAll('span')[2].text.replace(',', ''))))

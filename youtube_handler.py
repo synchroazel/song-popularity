@@ -1,10 +1,7 @@
 import time
 from datetime import datetime
-
 from apiclient.discovery import build
 from tqdm import tqdm
-
-from pprint import pprint  # just for testing purposes, not in the final module
 
 api_key = 'AIzaSyBrwNTSinLqhT7p-cOlVkzyUhkc5JAT9qM'
 client = '168166509565-kl2ki885efpiff8h64v8c18npguq3ijj.apps.googleusercontent.com'
@@ -12,17 +9,25 @@ client_secret = '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'
 
 
 class YoutubeHandler:
-    '''
-    TODO maybe not definitive
-    '''
 
     def __init__(self, api_key=api_key):
         self.api_key = api_key
         self.youtube = build('youtube', 'v3', developerKey=api_key)
 
+    def search_song(self, song_name, artist_name):
+        res = self.search_by_keyword(f'{song_name} {artist_name}', 50)
+
+        best_result = [item for item in res['items'] if (song_name.lower() in item['snippet']['title'].lower() and
+                                                         artist_name.lower() in item['snippet']['title'].lower())][0]
+
+        video_id = best_result["id"]["videoId"]
+
+        return self.search_by_id(video_id)
+
     def search_by_keyword(self, query, max_results):
         next_page = ''
         all_titles = list()
+        max_results = 50 if max_results > 50 else max_results
 
         for _ in tqdm(range(max_results // 50)):
             request = self.youtube.search().list(q=query,
@@ -31,16 +36,14 @@ class YoutubeHandler:
                                                  maxResults=50,
                                                  pageToken=next_page,
                                                  order='viewCount')
-            res = request.execute()
+            r = request.execute()
 
-            next_page = res['nextPageToken']
-            all_titles.extend([vid['snippet']['title'] for vid in res['items']])
+            next_page = r['nextPageToken']
+            all_titles.extend([vid['snippet']['title'] for vid in r['items']])
 
             time.sleep(1)
 
-        print(f'Found {len(all_titles)} videos.')
-
-        return res
+        return r
 
     def search_by_id(self, id):
         request = self.youtube.videos().list(part=["snippet", "statistics"], id=id)
@@ -61,25 +64,3 @@ class YoutubeHandler:
         info['popularity'] = info['views'] / info['days_old']
 
         return info
-
-
-# %% TESTING .search_by_id()
-
-yt_handler = YoutubeHandler(api_key)
-
-song_id1 = 'rLoGGMbF-YQ'  # Jovanotti - I love you baby
-song_id2 = 'MA_5P3u0apQ'  # Mahmood & Blanco - Brividi
-
-pprint(
-    yt_handler.search_by_id(song_id1)
-)
-
-# %% TESTING .search_by_keyword()
-
-yt_handler = YoutubeHandler(api_key)
-
-query = 'Jovanotti'  # an Italian singer
-
-pprint(
-    yt_handler.search_by_keyword(query, 100)
-)
