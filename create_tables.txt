@@ -1,30 +1,36 @@
 CREATE TABLE IF NOT EXISTS albums(
 id VARCHAR(30) PRIMARY KEY,
-album_name VARCHAR(30),
+album_name VARCHAR(100),
 release_date DATE
 );
 
 CREATE TABLE IF NOT EXISTS artists(
 id VARCHAR(30) PRIMARY KEY,
-artist_name VARCHAR(30),
+artist_name VARCHAR(100),
 artist_popularity INT,
 followers INT
 );
 
 CREATE TABLE IF NOT EXISTS track_features(
 track_id VARCHAR(30) PRIMARY KEY,
-acousticness DECIMAL(5,3),
 danceability DECIMAL(5,3),
-duration_ms INT,
 energy DECIMAL(5,3),
-instrumentalness DECIMAL(10,6),
+`key` INT,
+loudness DECIMAL(5,3),
+mode INT,
+speechiness DECIMAL(5,3),
+acousticness DECIMAL(5,3),
+instrumentalness DECIMAL(5,3),
 liveness DECIMAL(5,3),
-loudness DECIMAL(8,3)
+valence DECIMAL(5,3),
+tempo DECIMAL(10,3),
+duration_ms INT,
+time_signature INT
 );
 
 CREATE TABLE IF NOT EXISTS tracks(
 id VARCHAR(30) PRIMARY KEY,
-track_name VARCHAR(30),
+track_name VARCHAR(100),
 track_popularity INT,
 CONSTRAINT fk_tracks_trackfeatures FOREIGN KEY (id) REFERENCES track_features(track_id)
 );

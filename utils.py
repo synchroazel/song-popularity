@@ -2,9 +2,9 @@ import pandas as pd
 
 
 def import_chart(filepath):
-    """s
+    """
     Quick function to import a .csv Spotify chart and make some modifications.
-    In particular, colnames are parsed to be more readable and the track ids are extracted from their URLSs.
+    In particular, colnames are parsed to be more readable and the track ids are extracted from their URLs.
     :param filepath: path to the the .csv chart to import
     :return: the chart as a pandas.DataFrame object
     """
