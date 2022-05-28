@@ -12,17 +12,48 @@ class SpotifyHandler:
     def __init__(self, credentials=credentials):
         self.sp = spotipy.Spotify(client_credentials_manager=credentials)
 
+    def get_artist_id(self, artist_name):
+        r = self.sp.search(artist_name, type="artist")
+        for item in r['artists']['items']:
+            if item['name'] == artist_name:
+                return item['id']
+
+    def get_album_info(self, album_id):
+        r = self.sp.album(album_id)
+        return {'album_id': r['id'],
+                'album_name': r['name'],
+                'release_date': r['release_date']}
+
+    def get_track_info(self, track_id):
+        r = self.sp.track(track_id)
+        return {'track_id': r['id'],
+                'track_name': r['name'],
+                'track_popularity': r['popularity']}
+
+    def get_track_artist(self, track_id):
+        r = self.sp.track(track_id)
+        return {'track_id': r['id'],
+                # 'artist_id': [artist['id'] for artist in r['artists']]}
+                'artist_id': r['artists'][0]['id']}
+
     def get_genres_by_track_id(self, track_id):
         r = self.sp.track(track_id)
 
         if self.sp.album(r['album']['id'])['genres'].__len__() != 0:
             return self.sp.album(r['album']['id'])['genres']
         else:
-            print('debug')
             return self.sp.artist(r['artists'][0]['id'])['genres']
 
-    def get_features_by_track_id(self, track_id):
-        return self.sp.audio_features(track_id)[0]
+    def get_track_features(self, track_id):
+        r = self.sp.audio_features(track_id)[0]
+
+        excluded = ('uri', 'type', 'analysis_url', 'track_href', 'id')
+
+        features = {key: value for key, value in r.items() if key not in excluded}
+
+        ret = {'track_id': track_id}
+        ret.update(features)
+        return ret
 
     def get_analysis_by_track_id(self, track_id):
         r = self.sp.audio_analysis(track_id)
@@ -49,8 +80,8 @@ class SpotifyHandler:
         return {'monthly_listeners': monthly_listeners,
                 'top_tracks': top_tracks}
 
-    def get_artist_albums_ids(self, artist_id):  # NOT SURE HERE if we should do some filtering or this tokenization???
-        albums_info = self.sp.artist_albums(artist_id, limit=50)
+    def get_artist_albums_ids(self, artist_id):
+        albums_info = self.sp.artist_albums(artist_id, limit=50, album_type=['album', 'single'])
         ret = []
         for item in albums_info['items']:
             ret.append(item['id'])
@@ -70,7 +101,7 @@ class SpotifyHandler:
     def get_artist_info(self, artist_id):
         artist = self.sp.artist(artist_id)
         return {"followers": int(artist['followers']['total']),
-                "popularity_index": int(artist["popularity"])}
+                "popularity": int(artist["popularity"])}
 
     def get_playlist_tracks(self, playlist_id):
         plst_tracks = self.sp.playlist_items(playlist_id=playlist_id)
@@ -82,3 +113,12 @@ class SpotifyHandler:
                 'artists': [artist['name'] for artist in song['track']['artists']]
             })
         return ret
+
+
+# %%
+
+from pprint import pprint
+
+sp = SpotifyHandler(credentials)
+
+# sp.get_artist_albums_ids('06nvjg4wBANK6DCHjqtPNd')
