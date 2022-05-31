@@ -1,6 +1,7 @@
 import mysql.connector
 from mysql.connector import errorcode
 import warnings
+import pandas as pd
 
 
 class MYSQL_connector:
@@ -105,3 +106,11 @@ class MYSQL_connector:
             print(err.msg)
         finally:
             self.close_connection()
+
+    def create_pandas_df(self, query_file):
+        if query_file.endswith('.txt'):
+            with open(query_file) as f:
+                sql_file = f.read()
+        self.open_connection()
+        result_dataFrame = pd.read_sql(sql_file, self.cnx)
+        return result_dataFrame
