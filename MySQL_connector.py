@@ -46,9 +46,13 @@ class MYSQL_connector:
             with open(query) as f:
                 sql_file = f.read()
 
-            for statement in sql_file.split(';'):
-                mycursor = self.cnx.cursor()
-                mycursor.execute(statement)
+
+ #           for statement in sql_file.split(';'): # I think it works also like this
+            mycursor = self.cnx.cursor()
+            mycursor.execute(sql_file)
+
+            if sql_file.strip().lower().startswith("select"):
+                return mycursor.fetchall()
 
         else:
             mycursor = self.cnx.cursor()

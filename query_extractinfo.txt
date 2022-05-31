@@ -1,0 +1,6 @@
+select ar.artist_name, ar.artist_popularity, ar.followers,	tf.danceability, tf.loudness, tf.energy, tf.`mode`, tf.speechiness,tf.acousticness, tf.instrumentalness, tf.liveness, tf.valence, tf.tempo, tf.duration_ms, tf.time_signature,
+	t.track_popularity, t.track_name
+from artists as ar
+INNER JOIN tracks_artists AS ta ON ta.artist_id = ar.id
+INNER JOIN track_features AS tf ON tf.track_id = ta.track_id
+INNER JOIN tracks AS t ON t.id = ta.track_id;
