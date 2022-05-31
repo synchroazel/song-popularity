@@ -33,8 +33,8 @@ class SpotifyHandler:
     def get_track_artist(self, track_id):
         r = self.sp.track(track_id)
         return {'track_id': r['id'],
-                # 'artist_id': [artist['id'] for artist in r['artists']]}
-                'artist_id': r['artists'][0]['id']}
+                'artist_id': r['artists'][0]['id'],
+                'artist_name': r['artists'][0]['name']}
 
     def get_genres_by_track_id(self, track_id):
         r = self.sp.track(track_id)
@@ -65,9 +65,12 @@ class SpotifyHandler:
 
         return {key: value for key, value in r['track'].items() if key not in excluded}
 
-    def get_top_tracks_by_artist_url(self, artist_url):
+    def get_artist_chart(self, artist_id):
+
+        artist_url = 'https://open.spotify.com/artist/' + artist_id
+
         r = requests.get(artist_url)
-        soup = BeautifulSoup(r.text, features="html5lib")
+        soup = BeautifulSoup(r.text, features="html.parser")
 
         monthly_listeners = soup.findAll('div', {'class': 'Type__TypeElement-goli3j-0 edDNNU ovtJYocZljdWcU1FLBL5'})[0]
         monthly_listeners = int(monthly_listeners.text.split(' ')[0].replace(',', ''))
@@ -85,7 +88,7 @@ class SpotifyHandler:
         ret = []
         for item in albums_info['items']:
             ret.append(item['id'])
-        return ret  # a list with albums ids
+        return ret
 
     def get_songs_ids_by_album(self, album_id):
         songs = self.sp.album_tracks(album_id, limit=50)
@@ -113,12 +116,3 @@ class SpotifyHandler:
                 'artists': [artist['name'] for artist in song['track']['artists']]
             })
         return ret
-
-
-# %%
-
-from pprint import pprint
-
-sp = SpotifyHandler(credentials)
-
-# sp.get_artist_albums_ids('06nvjg4wBANK6DCHjqtPNd')

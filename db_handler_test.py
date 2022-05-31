@@ -1,8 +1,8 @@
+import os
+from tqdm import tqdm
 from MySQL_connector import *
 from spotify_handler import *
-from tqdm import tqdm
 from utils import *
-import os
 
 """
 You first have to manually create a database within your running instance of MySQL.
@@ -12,7 +12,7 @@ sql_handler = MYSQL_connector(user='root', password='magikaio99', host='127.0.0.
 
 SpotifyClientCredentials(client_id='cc9b11f2d73045ac954aa575677feba5', client_secret='2925a27703d3423b93be7082192e4bb9')
 
-sp_handler = SpotifyHandler(credentials)
+sp_handler = SpotifyHandler()
 
 if __name__ == '__main__':
 
@@ -22,7 +22,7 @@ if __name__ == '__main__':
         cur = import_chart(f'charts_csv/{chart}')
         all_artists.extend(cur.artist.tolist())
 
-    all_artists = set(all_artists[:10])  # let's try with a lesser set of artists (no need to stress our DB now)
+    all_artists = set(all_artists[:5])  # let's try with a lesser set of artists (no need to stress our DB now)
 
     # %% Create tables
 
@@ -32,10 +32,12 @@ if __name__ == '__main__':
 
     for artist in tqdm(all_artists, desc='Updating artists'):
         artist_id = sp_handler.get_artist_id(artist)
+
         popoularity = sp_handler.get_artist_info(artist_id)['popularity']
         followers = sp_handler.get_artist_info(artist_id)['followers']
+        monthly_listeners = sp_handler.get_artist_chart(artist_id)['monthly_listeners']
 
-        to_insert = (artist_id, artist, popoularity, followers)
+        to_insert = (artist_id, artist, popoularity, followers, monthly_listeners)
 
         sql_handler.insert('artists', to_insert)
 
@@ -71,13 +73,13 @@ if __name__ == '__main__':
 
     for album_id in tqdm(album_ids, desc='Updating tracks'):
 
-        for track_id in sp_handler.get_songs_ids_by_album(album_id):  # for all tracks in an album
-
+        for track_id in sp_handler.get_songs_ids_by_album(album_id):
             track_feats = sp_handler.get_track_features(track_id)
             track_info = sp_handler.get_track_info(track_id)
 
             sql_handler.insert('track_features', tuple(track_feats.values()))
-            sql_handler.insert('tracks', tuple(track_info.values()))
+            sql_handler.insert('tracks', tuple(
+                track_info.values()))
 
             artist_id = sql_handler.select('albums_artists', 'artist_id', f'album_id=\'{album_id}\'')[0][0]
 

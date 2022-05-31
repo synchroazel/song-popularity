@@ -1,6 +1,5 @@
 import mysql.connector
 from mysql.connector import errorcode
-import warnings
 
 
 class MYSQL_connector:
@@ -53,6 +52,11 @@ class MYSQL_connector:
         else:
             mycursor = self.cnx.cursor()
             mycursor.execute(query)
+
+        try:
+            return mycursor.fetchall()
+        except mysql.connector.errors.InterfaceError:
+            return
 
     def insert(self, table, values):
 

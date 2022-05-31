@@ -8,7 +8,8 @@ CREATE TABLE IF NOT EXISTS artists(
 id VARCHAR(30) PRIMARY KEY,
 artist_name VARCHAR(100),
 artist_popularity INT,
-followers INT
+followers INT,
+monthly_listeners INT
 );
 
 CREATE TABLE IF NOT EXISTS track_features(
@@ -43,7 +44,7 @@ CONSTRAINT fk_albums_artists_artists FOREIGN KEY (artist_id) REFERENCES artists(
 );
 
 CREATE TABLE albums_tracks(
-album_id VARCHAR(30), track_id VARCHAR(30),
+track_id VARCHAR(30), album_id VARCHAR(30),
 CONSTRAINT pk_albums_tracks PRIMARY KEY (album_id,track_id),
 CONSTRAINT fk_albums_tracks_albums FOREIGN KEY (album_id) REFERENCES albums(id),
 CONSTRAINT fk_albums_tracks_tracks FOREIGN KEY (track_id) REFERENCES tracks(id)

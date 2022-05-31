@@ -3,6 +3,8 @@ from datetime import datetime
 from apiclient.discovery import build
 from tqdm import tqdm
 
+from pprint import pprint
+
 api_key = 'AIzaSyBrwNTSinLqhT7p-cOlVkzyUhkc5JAT9qM'
 client = '168166509565-kl2ki885efpiff8h64v8c18npguq3ijj.apps.googleusercontent.com'
 client_secret = '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'
@@ -14,8 +16,8 @@ class YoutubeHandler:
         self.api_key = api_key
         self.youtube = build('youtube', 'v3', developerKey=api_key)
 
-    def search_song(self, song_name, artist_name):
-        res = self.search_by_keyword(f'{song_name} {artist_name}', 50)
+    def search_song(self, song_name, artist_name, quiet=True):
+        res = self.search_by_keyword(f'{song_name} {artist_name}', 50, quiet=quiet)
 
         best_result = [item for item in res['items'] if (song_name.lower() in item['snippet']['title'].lower() and
                                                          artist_name.lower() in item['snippet']['title'].lower())][0]
@@ -24,12 +26,12 @@ class YoutubeHandler:
 
         return self.search_by_id(video_id)
 
-    def search_by_keyword(self, query, max_results):
+    def search_by_keyword(self, query, max_results, quiet=False):
         next_page = ''
         all_titles = list()
         max_results = 50 if max_results > 50 else max_results
 
-        for _ in tqdm(range(max_results // 50)):
+        for _ in tqdm(range(max_results // 50), disable=quiet):
             request = self.youtube.search().list(q=query,
                                                  part='snippet',
                                                  type='music',
@@ -38,8 +40,12 @@ class YoutubeHandler:
                                                  order='viewCount')
             r = request.execute()
 
-            next_page = r['nextPageToken']
             all_titles.extend([vid['snippet']['title'] for vid in r['items']])
+
+            try:
+                next_page = r['nextPageToken']
+            except:
+                break
 
             time.sleep(1)
 
@@ -57,8 +63,7 @@ class YoutubeHandler:
                 'views': int(res['items'][0]['statistics']['viewCount']),
                 'likes': int(res['items'][0]['statistics']['likeCount']),
                 'comments': int(res['items'][0]['statistics']['commentCount']),
-                'channel': res['items'][0]['snippet']['channelTitle'],
-                'tags': res['items'][0]['snippet']['tags']
+                'channel': res['items'][0]['snippet']['channelTitle']
                 }
 
         info['popularity'] = info['views'] / info['days_old']
