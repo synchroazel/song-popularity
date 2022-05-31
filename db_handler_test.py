@@ -22,11 +22,11 @@ if __name__ == '__main__':
         cur = import_chart(f'charts_csv/{chart}')
         all_artists.extend(cur.artist.tolist())
 
-    all_artists = set(all_artists[:5])  # let's try with a lesser set of artists (no need to stress our DB now)
+    all_artists = set(all_artists[5:6])  # let's try with a lesser set of artists (no need to stress our DB now)
 
     # %% Create tables
 
-    sql_handler.execute_query('create_tables.txt')
+    # sql_handler.execute_query('create_tables.txt')
 
     # %% Populate 'artists' table
 
@@ -84,5 +84,6 @@ if __name__ == '__main__':
             artist_id = sql_handler.select('albums_artists', 'artist_id', f'album_id=\'{album_id}\'')[0][0]
 
             sql_handler.insert('tracks_artists', (track_id, artist_id))
+            sql_handler.insert('albums_tracks', (track_id, album_id))
 
     print(f'Databse {sql_handler.database} successfully updated.')

@@ -45,10 +45,13 @@ class MYSQL_connector:
             with open(query) as f:
                 sql_file = f.read()
 
+            ## if below doesn't work ##
+            # mycursor = self.cnx.cursor()
+            # mycursor.execute(sql_file, multi=True)
 
- #           for statement in sql_file.split(';'): # I think it works also like this
-            mycursor = self.cnx.cursor()
-            mycursor.execute(sql_file)
+            for statement in sql_file.split(';'):
+                mycursor = self.cnx.cursor()
+                mycursor.execute(statement)
 
             if sql_file.strip().lower().startswith("select"):
                 return mycursor.fetchall()
@@ -72,7 +75,8 @@ class MYSQL_connector:
         try:
             mycursor.execute(query)
         except mysql.connector.Error as err:
-            print(err.msg)
+            if not err.msg.startswith('Duplicate entry'):
+                print(err.msg)
         finally:
             self.close_connection()
 
