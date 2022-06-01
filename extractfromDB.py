@@ -9,7 +9,7 @@ def get_data(connectionSQL, query_file):
     return output
 
 
-conn = MYSQL_connector(user = 'root', password="volleyball_1199",
+conn = MYSQL_connector(user = 'root', password="",
                        host = "127.0.0.1", database = "song_popularity")
 
 

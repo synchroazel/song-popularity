@@ -1,6 +1,6 @@
 import paho.mqtt.client as mqtt
 
-broker = 
+broker = ""
 
 client = mqtt.Client("ME")
 client.username_pw_set("Publisher1", password="WINXCLUB")
