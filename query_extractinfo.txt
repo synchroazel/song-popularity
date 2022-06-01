@@ -3,4 +3,6 @@ select ar.artist_name, ar.artist_popularity, ar.followers,	tf.danceability, tf.l
 from artists as ar
 INNER JOIN tracks_artists AS ta ON ta.artist_id = ar.id
 INNER JOIN track_features AS tf ON tf.track_id = ta.track_id
-INNER JOIN tracks AS t ON t.id = ta.track_id;
+INNER JOIN tracks AS t ON t.id = ta.track_id
+INNER JOIN albums_tracks AS al_tr ON al_tr.track_id = t.id
+INNER JOIN albums AS alb ON alb.id = al_tr.album_id;
