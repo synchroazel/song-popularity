@@ -6,6 +6,9 @@ from spotipy.oauth2 import SpotifyClientCredentials
 credentials = SpotifyClientCredentials(client_id='cc9b11f2d73045ac954aa575677feba5',
                                        client_secret='2925a27703d3423b93be7082192e4bb9')
 
+backup_credentials = SpotifyClientCredentials(client_id='7377d5af32ef4bd0ab9e118d061486e9',
+                                              client_secret='c4b6f4742c0e48c0a4b06153c76366ce')
+
 
 class SpotifyHandler:
 
@@ -65,23 +68,20 @@ class SpotifyHandler:
 
         return {key: value for key, value in r['track'].items() if key not in excluded}
 
-    def get_artist_chart(self, artist_id):
+    def get_monthly_listeners(self, artist_id):
 
         artist_url = 'https://open.spotify.com/artist/' + artist_id
 
         r = requests.get(artist_url)
         soup = BeautifulSoup(r.text, features="html.parser")
 
-        monthly_listeners = soup.findAll('div', {'class': 'Type__TypeElement-goli3j-0 edDNNU ovtJYocZljdWcU1FLBL5'})[0]
-        monthly_listeners = int(monthly_listeners.text.split(' ')[0].replace(',', ''))
+        monthly_listeners = soup.findAll('div', {'class': 'Type__TypeElement-goli3j-0'})
+        monthly_listeners = [content for content in monthly_listeners if 'monthly listeners' in content.text]
 
-        top_tracks = list()
-        for item in soup.findAll('div', {'class': 'Row__Container-sc-brbqzp-0 jKreJT'}):
-            top_tracks.append((item.findAll('span')[0].text,
-                               int(item.findAll('span')[2].text.replace(',', ''))))
-
-        return {'monthly_listeners': monthly_listeners,
-                'top_tracks': top_tracks}
+        if len(monthly_listeners) != 0:
+            return int(monthly_listeners[0].text.split(' ')[0].replace(',', ''))
+        else:
+            return 0
 
     def get_artist_albums_ids(self, artist_id):
         albums_info = self.sp.artist_albums(artist_id, limit=50, album_type=['album', 'single'])

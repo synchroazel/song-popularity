@@ -121,5 +121,9 @@ class MYSQL_connector:
             with open(query_file) as f:
                 sql_file = f.read()
         self.open_connection()
-        result_dataFrame = pd.read_sql(sql_file, self.cnx)
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            result_dataFrame = pd.read_sql(sql_file, self.cnx)
+
         return result_dataFrame

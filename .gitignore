@@ -46,4 +46,5 @@ Thumbs.db
 .cache
 **/__pycache__
 testing_ground.ipynb
+venv
 
