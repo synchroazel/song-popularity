@@ -28,7 +28,7 @@ def create_database(db_name, host, user, password):
     mydb = mysql.connector.connect(host=host, user=user, password=password)
 
     mycursor = mydb.cursor()
-    mycursor.execute(f"CREATE DATABASE {db_name}")
+    mycursor.execute(f"CREATE DATABASE `{db_name}`")
 
     print(f'[INFO] Database {db_name} successfully created.')
 
