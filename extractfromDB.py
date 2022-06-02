@@ -14,7 +14,7 @@ conn = MYSQL_connector(user = 'root', password="",
 
 
 
-print(conn.create_pandas_df("query_extractinfo.txt"))
+print(conn.create_pandas_df("extract_info.txt"))
 
 
 
