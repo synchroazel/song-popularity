@@ -1,0 +1,10 @@
+beautifulsoup4==4.11.1
+google_api_python_client==2.49.0
+MySQL_connector==2.2.9
+paho_mqtt==1.6.1
+pandas==1.4.2
+python_dateutil==2.8.2
+requests==2.27.1
+spotipy==2.19.0
+SQLAlchemy==1.4.37
+tqdm==4.64.0
