@@ -135,7 +135,7 @@ def update_tracks(sql_handler, sp_handler, artists, quiet=True):
 
 if __name__ == "__main__":
     arg_parser = argparse.ArgumentParser(description="Update a MySQL database with songs information.")
-    arg_parser.add_argument("--mysql_db", type=str, required=True, default=None, help="The name of MySQL db to update")
+    arg_parser.add_argument("--mysql_db", type=str, required=True, default=None, help="The MySQL database")
     arg_parser.add_argument("--mysql_host", type=str, required=True, default=None, help="The MySQL host")
     arg_parser.add_argument("--mysql_user", type=str, required=True, default=None, help="The MySQL username")
     arg_parser.add_argument("--mysql_password", type=str, required=True, default=None, help="The MySQL password")
