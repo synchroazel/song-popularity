@@ -148,7 +148,7 @@ if __name__ == "__main__":
                                   database=args.mysql_db)
 
     if check_tables(sql_handler):
-        print('[INFO] [] Tables exist.')
+        print('[INFO] Tables exist.')
     else:
         print('[WARN] Tables do not exist. Creating them now.')
         create_tables(sql_handler)

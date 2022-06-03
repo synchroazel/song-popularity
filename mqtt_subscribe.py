@@ -1,10 +1,10 @@
 from paho.mqtt import client as mqtt_client
 import random
-import time
+
 
 broker = 'broker.hivemq.com'
 port = 1883
-topic = "Songs_PUNK"
+topic = "testtopic/try"
 # generate client ID with pub prefix randomly
 client_id = f'python-mqtt-{random.randint(0, 1000)}'
 username = "BDT_tunes"
@@ -13,9 +13,9 @@ password = "winxclub"
 def connect_mqtt() -> mqtt_client:
     def on_connect(client, userdata, flags, rc):
         if rc == 0:
-            print("Connected to MQTT Broker!")
+            print("[NFO] Connected to MQTT Broker!")
         else:
-            print("Failed to connect, return code %d\n", rc)
+            print(f"[ERROR] Failed to connect, return code {rc}")
 
     client = mqtt_client.Client(client_id)
     client.username_pw_set(username, password)
@@ -36,7 +36,7 @@ def run():
     client = connect_mqtt()
     subscribe(client)
     client.loop_forever()
-    #client.disconnect()
+    client.disconnect()
 
 
 if __name__ == '__main__':

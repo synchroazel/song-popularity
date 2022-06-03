@@ -28,8 +28,15 @@ def create_database(db_name, host, user, password):
     mydb = mysql.connector.connect(host=host, user=user, password=password)
 
     mycursor = mydb.cursor()
-    mycursor.execute(f"CREATE DATABASE `{db_name}`")
 
+    mycursor.execute("SHOW DATABASES")
+
+    for db in mycursor:
+        if args.mysql_db in db:
+            print(f'[INFO] A database named {db_name} already exist. Please try again.')
+            exit()
+
+    mycursor.execute(f"CREATE DATABASE `{db_name}`")
     print(f'[INFO] Database {db_name} successfully created.')
 
     mydb.commit()
@@ -142,7 +149,6 @@ def ingest_tracks(sql_handler, sp_handler, quiet=True):
 
 if __name__ == "__main__":
     arg_parser = argparse.ArgumentParser(description="Initialize a MySQL database with songs information.")
-    arg_parser.add_argument("--create_db", action='store_true', required=False, default=False, help="True if you still don't have created a database")
     arg_parser.add_argument("--mysql_db", type=str, required=True, default=None, help="The MySQL database")
     arg_parser.add_argument("--mysql_host", type=str, required=True, default=None, help="The MySQL host")
     arg_parser.add_argument("--mysql_user", type=str, required=True, default=None, help="The MySQL username")
@@ -150,21 +156,7 @@ if __name__ == "__main__":
 
     args = arg_parser.parse_args()
 
-    if args.create_db:
-
-        if check_database(args.mysql_db, args.mysql_host, args.mysql_user, args.mysql_password):
-            print(f'[INFO] A database named {args.mysql_db} already exist.')
-        else:
-            create_database(args.mysql_db, args.mysql_host, args.mysql_user, args.mysql_password)
-            print(f'[INFO] Database {args.mysql_db} successfully created.')
-
-    else:
-
-        if check_database(args.mysql_db, args.mysql_host, args.mysql_user, args.mysql_password):
-            print(f'[INFO] Database named {args.mysql_db} found.')
-        else:
-            print(f'[INFO] No database named {args.mysql_db} found. Try again with --create_db.')
-            exit()
+    create_database(db_name=args.mysql_db, host=args.mysql_host, user=args.mysql_user, password=args.mysql_password)
 
     sql_handler = MYSQL_connector(host=args.mysql_host,
                                   user=args.mysql_user,
@@ -179,7 +171,7 @@ if __name__ == "__main__":
 
     sp_handler = SpotifyHandler()
 
-    artists = past_trending_artists(limit=5)
+    artists = past_trending_artists()
 
     ingest_artists(sql_handler, sp_handler, artists)
     ingest_albums(sql_handler, sp_handler)

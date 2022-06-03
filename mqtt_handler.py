@@ -22,6 +22,7 @@ class MQTT_handler:
                 print(f"[ERROR] Failed to connect, return code {rc}")
 
         client = mqtt_client.Client(self.id)
+        client.username_pw_set('username', 'password')
         client.on_connect = on_connect
         client.connect(self.broker, self.port)
         self.client = client
@@ -32,7 +33,7 @@ class MQTT_handler:
 
         time.sleep(0.5)
 
-        result = self.client.publish(topic, msg, retain=True)
+        result = self.client.publish(topic, msg, retain=retain, qos=2)
         status = result[0]
 
         if status == 0:
@@ -42,10 +43,33 @@ class MQTT_handler:
 
         self.client.loop_stop()
         self.client.disconnect()
+        print(f'[INFO] Connection with {self.broker}:{self.port} closed.')
 
+    def subscribe(self, topic):
+
+        def on_message(client, userdata, msg):
+            print(f"[INFO] Received `{msg.payload.decode()}` from `{msg.topic}` topic")
+
+        self.client.subscribe(topic)
+        self.client.on_message = on_message
+
+        self.client.loop_start()
+        time.sleep(0.5)
+        self.client.loop_stop()
+        self.client.disconnect()
+        print(f'[INFO] Connection with {self.broker}:{self.port} closed.')
+
+
+# %%
 
 mqtt_handler = MQTT_handler()
 
 msg = 'Ground control to Major Tom'
 
 mqtt_handler.publish(msg, 'testtopic/01')
+
+# %%
+
+mqtt_handler = MQTT_handler()
+
+mqtt_handler.subscribe('testtopic/01')
