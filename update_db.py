@@ -64,17 +64,11 @@ def update_albums(sql_handler, sp_handler, artists, quiet=True):
     past_albums = [item[0] for item in sql_handler.select('albums', 'id')]
     new_albums = list()
 
-    print('debug1')
-
     for artist in artists:
         artist_id = sp_handler.get_artist_id(artist)
         new_albums.extend(sp_handler.get_artist_albums_ids(artist_id))
 
-    print('debug2')
-
     new_albums = set(new_albums).difference(past_albums)
-
-    print('debug3')
 
     print(f'[INFO] {len(new_albums)} new albums to add to database.')
 
