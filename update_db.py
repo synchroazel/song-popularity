@@ -18,16 +18,13 @@ def create_tables(sql_handler):
     print('[INFO] Tables successfully created.')
 
 
-def trending_artists(sp_handler, limit=5):
+def trending_artists(sp_handler, limit=None):
     artists = list()
-    tracks = list()
-
     top50today = 'https://open.spotify.com/playlist/37i9dQZEVXbIQnj7RRhdSX'
     top50 = sp_handler.get_playlist_tracks(top50today)[:limit]
 
     for item in top50:
         artists.extend(item['artists'])
-        tracks.append(item['track_id'])
 
     return set(artists)
 
@@ -42,6 +39,7 @@ def update_artists(sql_handler, sp_handler, artists, quiet=True):
 
         for artist in tqdm(new_artists, desc='[TQDM] Updating artists'):
 
+            print(f'adding {artist}')
             artist_id = sp_handler.get_artist_id(artist)
 
             if not quiet:
@@ -66,11 +64,17 @@ def update_albums(sql_handler, sp_handler, artists, quiet=True):
     past_albums = [item[0] for item in sql_handler.select('albums', 'id')]
     new_albums = list()
 
+    print('debug1')
+
     for artist in artists:
         artist_id = sp_handler.get_artist_id(artist)
         new_albums.extend(sp_handler.get_artist_albums_ids(artist_id))
 
+    print('debug2')
+
     new_albums = set(new_albums).difference(past_albums)
+
+    print('debug3')
 
     print(f'[INFO] {len(new_albums)} new albums to add to database.')
 
@@ -94,7 +98,6 @@ def update_albums(sql_handler, sp_handler, artists, quiet=True):
 
 
 def update_tracks(sql_handler, sp_handler, artists, quiet=True):
-    past_albums = [item[0] for item in sql_handler.select('albums', 'id')]
     past_tracks = [item[0] for item in sql_handler.select('tracks', 'id')]
     new_albums = list()
     new_tracks = list()
@@ -155,10 +158,10 @@ if __name__ == "__main__":
 
     sp_handler = SpotifyHandler()
 
-    new_artists = trending_artists(sp_handler, limit=5)
+    new_artists = trending_artists(sp_handler)
 
-    update_artists(sql_handler, sp_handler, new_artists)
-    update_albums(sql_handler, sp_handler, new_artists)
-    update_tracks(sql_handler, sp_handler, new_artists)
+    update_artists(sql_handler, sp_handler, new_artists, quiet=False)
+    update_albums(sql_handler, sp_handler, new_artists, quiet=False)
+    update_tracks(sql_handler, sp_handler, new_artists, quiet=False)
 
     print(f'[INFO] Database {args.mysql_db} successfully updated.')
