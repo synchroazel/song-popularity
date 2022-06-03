@@ -47,11 +47,16 @@ class MQTT_handler:
 
     def subscribe(self, topic):
 
+        received_msg = None
+
         def on_message(client, userdata, msg):
             print(f"[INFO] Received `{msg.payload.decode()}` from `{msg.topic}` topic")
+            received_msg = msg.payload
 
         self.client.subscribe(topic)
         self.client.on_message = on_message
+
+
 
         self.client.loop_start()
         time.sleep(0.5)
@@ -59,17 +64,4 @@ class MQTT_handler:
         self.client.disconnect()
         print(f'[INFO] Connection with {self.broker}:{self.port} closed.')
 
-
-# %%
-
-mqtt_handler = MQTT_handler()
-
-msg = 'Ground control to Major Tom'
-
-mqtt_handler.publish(msg, 'testtopic/01')
-
-# %%
-
-mqtt_handler = MQTT_handler()
-
-mqtt_handler.subscribe('testtopic/01')
+        return received_msg

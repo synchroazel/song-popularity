@@ -1,7 +1,6 @@
 import requests
 import spotipy
 from bs4 import BeautifulSoup
-from spotipy.oauth2 import SpotifyClientCredentials
 
 from secrets import sp_credentials
 
@@ -36,7 +35,7 @@ class SpotifyHandler:
                 'artist_id': r['artists'][0]['id'],
                 'artist_name': r['artists'][0]['name']}
 
-    def get_genres_by_track_id(self, track_id):
+    def get_track_genres(self, track_id):
         r = self.sp.track(track_id)
 
         if self.sp.album(r['album']['id'])['genres'].__len__() != 0:
@@ -45,10 +44,12 @@ class SpotifyHandler:
             return self.sp.artist(r['artists'][0]['id'])['genres']
 
     def get_track_features(self, track_id):
+
         r = self.sp.audio_features(track_id)[0]
 
-        excluded = ('uri', 'type', 'analysis_url', 'track_href', 'id')
+        if r is None: return None
 
+        excluded = ('uri', 'type', 'analysis_url', 'track_href', 'id')
         features = {key: value for key, value in r.items() if key not in excluded}
 
         ret = {'track_id': track_id}
@@ -113,3 +114,10 @@ class SpotifyHandler:
                 'artists': [artist['name'] for artist in song['track']['artists']]
             })
         return ret
+
+
+# %%
+
+sp_handler = SpotifyHandler()
+
+sp_handler.get_track_features('08Enc1cpTGEiWPhqHDW6SU')

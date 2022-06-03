@@ -117,7 +117,7 @@ class MYSQL_connector:
             self.close_connection()
 
     def create_pandas_df(self, query_file):
-        if query_file.endswith('.txt'):
+        if query_file.endswith('.sql'):
             with open(query_file) as f:
                 sql_file = f.read()
         self.open_connection()
