@@ -1,13 +1,13 @@
 import time
-from datetime import datetime
 from apiclient.discovery import build
+from datetime import datetime
 from tqdm import tqdm
 
-from pprint import pprint
+import secrets
 
-api_key = 'AIzaSyBrwNTSinLqhT7p-cOlVkzyUhkc5JAT9qM'
-client = '168166509565-kl2ki885efpiff8h64v8c18npguq3ijj.apps.googleusercontent.com'
-client_secret = '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'
+api_key = secrets.yt_api_key
+client = secrets.yt_client
+client_secret = secrets.yt_client_secret
 
 
 class YoutubeHandler:
@@ -47,7 +47,7 @@ class YoutubeHandler:
             except:
                 break
 
-            time.sleep(1)
+            time.sleep(5)
 
         return r
 

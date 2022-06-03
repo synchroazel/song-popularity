@@ -3,11 +3,10 @@ import spotipy
 from bs4 import BeautifulSoup
 from spotipy.oauth2 import SpotifyClientCredentials
 
-credentials = SpotifyClientCredentials(client_id='cc9b11f2d73045ac954aa575677feba5',
-                                       client_secret='2925a27703d3423b93be7082192e4bb9')
+import secrets
 
-backup_credentials = SpotifyClientCredentials(client_id='7377d5af32ef4bd0ab9e118d061486e9',
-                                              client_secret='c4b6f4742c0e48c0a4b06153c76366ce')
+credentials = SpotifyClientCredentials(client_id=secrets.sp_client,
+                                       client_secret=secrets.sp_client_secret)
 
 
 class SpotifyHandler:
@@ -117,7 +116,6 @@ class SpotifyHandler:
                 'artists': [artist['name'] for artist in song['track']['artists']]
             })
         return ret
-
 
 # sp = SpotifyHandler()
 
