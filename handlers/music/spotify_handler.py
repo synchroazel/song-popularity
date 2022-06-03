@@ -116,7 +116,3 @@ class SpotifyHandler:
                 'artists': [artist['name'] for artist in song['track']['artists']]
             })
         return ret
-
-# sp = SpotifyHandler()
-
-# sp.get_artist_id('Albe')

@@ -153,6 +153,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("--mysql_host", type=str, required=True, default=None, help="The MySQL host")
     arg_parser.add_argument("--mysql_user", type=str, required=True, default=None, help="The MySQL username")
     arg_parser.add_argument("--mysql_password", type=str, required=True, default=None, help="The MySQL password")
+    arg_parser.add_argument("--limit", type=int, required=False, default=None, help="Limit the number of artists to import")
 
     args = arg_parser.parse_args()
 
@@ -171,7 +172,7 @@ if __name__ == "__main__":
 
     sp_handler = SpotifyHandler()
 
-    artists = past_trending_artists()
+    artists = past_trending_artists(limit=args.limit)
 
     ingest_artists(sql_handler, sp_handler, artists)
     ingest_albums(sql_handler, sp_handler)
