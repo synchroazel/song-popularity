@@ -132,17 +132,19 @@ def ingest_tracks(sql_handler, sp_handler, quiet=True):
             track_feats = sp_handler.get_track_features(track_id)
             track_info = sp_handler.get_track_info(track_id)
 
-            sql_handler.insert('track_features', tuple(track_feats.values()))
-            sql_handler.insert('tracks', tuple(track_info.values()))
+            if track_info != None and track_feats != None:
 
-            artist_id = sql_handler.select('albums_artists', 'artist_id', f'album_id=\'{album_id}\'')[0][0]
+                sql_handler.insert('track_features', tuple(track_feats.values()))
+                sql_handler.insert('tracks', tuple(track_info.values()))
 
-            sql_handler.insert('tracks_artists', (track_id, artist_id))
-            sql_handler.insert('albums_tracks', (track_id, album_id))
+                artist_id = sql_handler.select('albums_artists', 'artist_id', f'album_id=\'{album_id}\'')[0][0]
 
-            n_tracks += 1
+                sql_handler.insert('tracks_artists', (track_id, artist_id))
+                sql_handler.insert('albums_tracks', (track_id, album_id))
 
-            time.sleep(5)
+                n_tracks += 1
+
+                time.sleep(5)
 
     print(f'[INFO] {n_tracks} tracks info successfully added to database.')
 
