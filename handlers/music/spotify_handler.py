@@ -3,15 +3,12 @@ import spotipy
 from bs4 import BeautifulSoup
 from spotipy.oauth2 import SpotifyClientCredentials
 
-import secrets
-
-credentials = SpotifyClientCredentials(client_id=secrets.sp_client,
-                                       client_secret=secrets.sp_client_secret)
+from secrets import sp_credentials
 
 
 class SpotifyHandler:
 
-    def __init__(self, credentials=credentials):
+    def __init__(self, credentials=sp_credentials):
         self.sp = spotipy.Spotify(client_credentials_manager=credentials)
 
     def get_artist_id(self, artist_name):
@@ -97,7 +94,7 @@ class SpotifyHandler:
             ret.append(song["id"])
         return ret
 
-    def get_song_id_by_name_and_artist(self, track_name, artist_name):
+    def get_song_id_by_aname_and_artist(self, track_name, artist_name):
         info = self.sp.search(q="artist:" + artist_name + " track:" + track_name, type="track")
         return info['tracks']['items'][0]['album']['id']
 
