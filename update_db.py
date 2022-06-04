@@ -144,16 +144,16 @@ if __name__ == "__main__":
 
     if args.skipto == 'tracks':
         print(f'[INFO] Skipping to tracks ingestion phase.')
-        update_tracks(sql_handler, sp_handler)
+        update_tracks(sql_handler, sp_handler, new_artists)
 
     if args.skipto == 'albums':
         print(f'[INFO] Skipping to albums ingestion phase.')
-        update_albums(sql_handler, sp_handler)
-        update_tracks(sql_handler, sp_handler)
+        update_albums(sql_handler, sp_handler, new_artists)
+        update_tracks(sql_handler, sp_handler, new_artists)
 
     if args.skipto == None:
         update_artists(sql_handler, sp_handler, new_artists)
-        update_albums(sql_handler, sp_handler)
-        update_tracks(sql_handler, sp_handler)
+        update_albums(sql_handler, sp_handler, new_artists)
+        update_tracks(sql_handler, sp_handler, new_artists)
 
     print(f'[INFO] Database {args.mysql_db} successfully updated.')
