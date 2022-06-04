@@ -138,8 +138,12 @@ def ingest_tracks(sql_handler, sp_handler, quiet=True):
 
                     if artist_id != None:
 
+                        print(f'artist id: {artist_id} | track id: {track_id}')
+
                         sql_handler.insert('track_features', tuple(track_feats.values()))
                         sql_handler.insert('tracks', tuple(track_info.values()))
+
+                        print('debug')
 
                         sql_handler.insert('tracks_artists', (track_id, artist_id))
                         sql_handler.insert('albums_tracks', (track_id, album_id))
