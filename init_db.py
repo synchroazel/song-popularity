@@ -32,6 +32,12 @@ def create_database(db_name, host, user, password):
     mycursor.execute("SHOW DATABASES")
 
     for db in mycursor:
+
+        try
+            db = db.decode()
+        except (UnicodeDecodeError, AttributeError):
+            pass
+
         if args.mysql_db == db[0]:
             print(f'[INFO] A database named {db_name} already exist. Please try again.')
             return
