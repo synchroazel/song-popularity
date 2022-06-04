@@ -33,7 +33,7 @@ def create_database(db_name, host, user, password):
 
     for db in mycursor:
 
-        try
+        try:
             db = db.decode()
         except (UnicodeDecodeError, AttributeError):
             pass
