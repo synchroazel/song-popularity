@@ -68,11 +68,11 @@ def ingest_artists(sql_handler, sp_handler, artists, quiet=True):
         if not quiet:
             print(f'[INFO] adding artist: {artist} | id: {artist_id}')
 
-        if artist_id != None:
+        if artist_id is not None:
 
             monthly_listeners = sp_handler.get_monthly_listeners(artist_id)
 
-            if monthly_listeners != None:
+            if monthly_listeners is not None:
                 popoularity = sp_handler.get_artist_info(artist_id)['popularity']
                 followers = sp_handler.get_artist_info(artist_id)['followers']
 
@@ -130,14 +130,28 @@ def ingest_tracks(sql_handler, sp_handler, quiet=True):
                 track_feats = sp_handler.get_track_features(track_id)
                 track_info = sp_handler.get_track_info(track_id)
 
-                if track_info != None and track_feats != None:
+                if track_info is not None and track_feats is not None:
 
                     artist_id = sp_handler.get_track_artist(track_id)
                     # artist_id = sql_handler.select('albums_artists', 'artist_id', f'album_id=\'{album_id}\'')[0][0]
 
-                    if artist_id != None:
+                    if artist_id is not None:
 
-                        sql_handler.insert('track_features', tuple(track_feats.values()))
+                        feats = [track_feats['track_id'],
+                                     track_feats['danceability'],
+                                     track_feats['energy'],
+                                 track_feats['key'],
+                                 track_feats['loudness'],
+                                 track_feats['mode'],
+                                 track_feats['speechiness'],
+                                 track_feats['instrumentalness'],
+                                 track_feats['liveness'],
+                                 track_feats['valence'],
+                                 track_feats['tempo'],
+                                 track_feats['duration_ms'],
+                                 track_feats['time_signature'],
+                                     ]
+                        sql_handler.insert('track_features', tuple(feats))
                         sql_handler.insert('tracks', tuple(track_info.values()))
 
                         sql_handler.insert('tracks_artists', (track_id, artist_id))
@@ -188,7 +202,7 @@ if __name__ == "__main__":
         ingest_albums(sql_handler, sp_handler)
         ingest_tracks(sql_handler, sp_handler)
 
-    if args.skipto == None:
+    if args.skipto is None:
         ingest_artists(sql_handler, sp_handler, artists)
         ingest_albums(sql_handler, sp_handler)
         ingest_tracks(sql_handler, sp_handler)
