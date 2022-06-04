@@ -8,16 +8,6 @@ from handlers.music.spotify_handler import SpotifyHandler
 from handlers.mysql.mysql_connector import MYSQL_connector
 
 
-def check_tables(sql_handler):
-    r = sql_handler.execute_query('sql_queries/check_tables.sql')
-    return r == [('albums',), ('artists',), ('tracks',), ('track_features',), ('albums_tracks',), ('tracks_artists',)]
-
-
-def create_tables(sql_handler):
-    sql_handler.execute_query('sql_queries/create_tables.sql')
-    print('[INFO] Tables successfully created.')
-
-
 def trending_artists(sp_handler, limit=None):
     artists = list()
     top50today = 'https://open.spotify.com/playlist/37i9dQZEVXbIQnj7RRhdSX'
@@ -143,12 +133,6 @@ if __name__ == "__main__":
                                   user=args.mysql_user,
                                   password=args.mysql_password,
                                   database=args.mysql_db)
-
-    if check_tables(sql_handler):
-        print('[INFO] Tables exist.')
-    else:
-        print('[WARN] Tables do not exist. Creating them now.')
-        create_tables(sql_handler)
 
     sp_handler = SpotifyHandler()
 
