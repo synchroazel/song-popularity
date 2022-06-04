@@ -79,7 +79,7 @@ def ingest_artists(sql_handler, sp_handler, artists, quiet=True):
 
                 sql_handler.insert('artists', (artist_id, artist, popoularity, followers, monthly_listeners))
 
-                time.sleep(1)
+                time.sleep(2)
 
     print(f'[INFO] {len(artists)} artists info successfully added to database.')
 
@@ -107,7 +107,7 @@ def ingest_albums(sql_handler, sp_handler, quiet=True):
 
             n_album += 1
 
-            time.sleep(1)
+            time.sleep(2)
 
     print(f'[INFO] {n_album} albums info successfully added to database.')
 
@@ -146,7 +146,7 @@ def ingest_tracks(sql_handler, sp_handler, quiet=True):
 
                         n_tracks += 1
 
-                        time.sleep(1)
+                        time.sleep(2)
 
     print(f'[INFO] {n_tracks} tracks info successfully added to database.')
 
