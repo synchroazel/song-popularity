@@ -32,7 +32,8 @@ def create_database(db_name, host, user, password):
     mycursor.execute("SHOW DATABASES")
 
     for db in mycursor:
-        if args.mysql_db in db:
+        print(db)
+        if args.mysql_db == db:
             print(f'[INFO] A database named {db_name} already exist. Please try again.')
             return
 
