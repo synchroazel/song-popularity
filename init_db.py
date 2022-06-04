@@ -73,6 +73,7 @@ def ingest_artists(sql_handler, sp_handler, artists, quiet=True):
             monthly_listeners = sp_handler.get_monthly_listeners(artist_id)
 
             if monthly_listeners != None:
+
                 popoularity = sp_handler.get_artist_info(artist_id)['popularity']
                 followers = sp_handler.get_artist_info(artist_id)['followers']
 
@@ -131,19 +132,21 @@ def ingest_tracks(sql_handler, sp_handler, quiet=True):
                 track_info = sp_handler.get_track_info(track_id)
 
                 if track_info != None and track_feats != None:
-                    sql_handler.insert('track_features', tuple(track_feats.values()))
-                    sql_handler.insert('tracks', tuple(track_info.values()))
-
-                    # artist_id = sql_handler.select('albums_artists', 'artist_id', f'album_id=\'{album_id}\'')[0][0]
 
                     artist_id = sp_handler.get_track_artist(track_id)
+                    # artist_id = sql_handler.select('albums_artists', 'artist_id', f'album_id=\'{album_id}\'')[0][0]
 
-                    sql_handler.insert('tracks_artists', (track_id, artist_id))
-                    sql_handler.insert('albums_tracks', (track_id, album_id))
+                    if artist_id != None:
 
-                    n_tracks += 1
+                        sql_handler.insert('track_features', tuple(track_feats.values()))
+                        sql_handler.insert('tracks', tuple(track_info.values()))
 
-                    time.sleep(1)
+                        sql_handler.insert('tracks_artists', (track_id, artist_id))
+                        sql_handler.insert('albums_tracks', (track_id, album_id))
+
+                        n_tracks += 1
+
+                        time.sleep(1)
 
     print(f'[INFO] {n_tracks} tracks info successfully added to database.')
 
