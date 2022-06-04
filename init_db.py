@@ -34,7 +34,7 @@ def create_database(db_name, host, user, password):
     for db in mycursor:
         if args.mysql_db in db:
             print(f'[INFO] A database named {db_name} already exist. Please try again.')
-            exit()
+            return
 
     mycursor.execute(f"CREATE DATABASE `{db_name}`")
     print(f'[INFO] Database {db_name} successfully created.')
@@ -65,6 +65,7 @@ def past_trending_artists(charts_path='music_charts', limit=None):
 
 
 def ingest_artists(sql_handler, sp_handler, artists, quiet=True):
+
     for artist in tqdm(artists, desc='[TQDM] Updating artists'):
 
         artist_id = sp_handler.get_artist_id(artist)
@@ -77,6 +78,7 @@ def ingest_artists(sql_handler, sp_handler, artists, quiet=True):
             monthly_listeners = sp_handler.get_monthly_listeners(artist_id)
 
             if monthly_listeners != None:
+
                 popoularity = sp_handler.get_artist_info(artist_id)['popularity']
                 followers = sp_handler.get_artist_info(artist_id)['followers']
 
@@ -88,6 +90,7 @@ def ingest_artists(sql_handler, sp_handler, artists, quiet=True):
 
 
 def ingest_albums(sql_handler, sp_handler, quiet=True):
+
     artist_ids = [item[0] for item in sql_handler.select('artists', 'id')]
 
     n_album = 0
@@ -99,7 +102,7 @@ def ingest_albums(sql_handler, sp_handler, quiet=True):
         for album_id in album_ids:
 
             if not quiet:
-                print(f'[INFO] addiing album: {album_id} | from artist: {artist_id}')
+                print(f'[INFO] adding album: {album_id} | from artist: {artist_id}')
 
             album = sp_handler.get_album_info(album_id)
 
@@ -110,12 +113,13 @@ def ingest_albums(sql_handler, sp_handler, quiet=True):
 
             n_album += 1
 
-            time.sleep(5)
+            time.sleep(2)
 
     print(f'[INFO] {n_album} albums info successfully added to database.')
 
 
 def ingest_tracks(sql_handler, sp_handler, quiet=True):
+
     album_ids = [item[0] for item in sql_handler.select('albums', 'id')]
 
     n_tracks = 0
@@ -126,25 +130,28 @@ def ingest_tracks(sql_handler, sp_handler, quiet=True):
 
         for track_id in track_ids:
 
-            if not quiet:
-                print(f'[INFO] adding track: {track_id} | from artist: {album_id}')
+            if (track_id,) not in sql_handler.select('tracks','id'):
 
-            track_feats = sp_handler.get_track_features(track_id)
-            track_info = sp_handler.get_track_info(track_id)
+                if not quiet:
+                    print(f'[INFO] adding track: {track_id} | from album: {album_id}')
 
-            if track_info != None and track_feats != None:
+                track_feats = sp_handler.get_track_features(track_id)
+                track_info = sp_handler.get_track_info(track_id)
 
-                sql_handler.insert('track_features', tuple(track_feats.values()))
-                sql_handler.insert('tracks', tuple(track_info.values()))
+                if track_info != None and track_feats != None:
 
-                artist_id = sql_handler.select('albums_artists', 'artist_id', f'album_id=\'{album_id}\'')[0][0]
+                    sql_handler.insert('track_features', tuple(track_feats.values()))
+                    sql_handler.insert('tracks', tuple(track_info.values()))
 
-                sql_handler.insert('tracks_artists', (track_id, artist_id))
-                sql_handler.insert('albums_tracks', (track_id, album_id))
+                    artist_id = sp_handler.get_track_artist(track_id)['artist_id']
+                    #artist_id = sql_handler.select('albums_artists', 'artist_id', f'album_id=\'{album_id}\'')[0][0]
 
-                n_tracks += 1
+                    sql_handler.insert('tracks_artists', (track_id, artist_id))
+                    sql_handler.insert('albums_tracks', (track_id, album_id))
 
-                time.sleep(5)
+                    n_tracks += 1
+
+                    time.sleep(2)
 
     print(f'[INFO] {n_tracks} tracks info successfully added to database.')
 
@@ -156,6 +163,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("--mysql_user", type=str, required=True, default=None, help="The MySQL username")
     arg_parser.add_argument("--mysql_password", type=str, required=True, default=None, help="The MySQL password")
     arg_parser.add_argument("--limit", type=int, required=False, default=-1, help="Limit the number of artists to import")
+    arg_parser.add_argument("--skipto", type=str,choices=['albums', 'tracks'], required=False, default=None, help="Skip to specific phase of ingestion")
 
     args = arg_parser.parse_args()
 
@@ -166,18 +174,22 @@ if __name__ == "__main__":
                                   password=args.mysql_password,
                                   database=args.mysql_db)
 
-    if check_tables(sql_handler):
-        print('[INFO] Tables already exist.')
-    else:
-        print('[INFO] Tables do not exist. Creating them now.')
-        create_tables(sql_handler)
-
     sp_handler = SpotifyHandler()
 
     artists = past_trending_artists(limit=args.limit)
 
-    ingest_artists(sql_handler, sp_handler, artists)
-    ingest_albums(sql_handler, sp_handler)
-    ingest_tracks(sql_handler, sp_handler)
+    if args.skipto == 'tracks':
+        print(f'[INFO] Skipping to tracks ingestion phase.')
+        ingest_tracks(sql_handler, sp_handler)
+
+    if args.skipto == 'albums':
+        print(f'[INFO] Skipping to albums ingestion phase.')
+        ingest_albums(sql_handler, sp_handler)
+        ingest_tracks(sql_handler, sp_handler)
+
+    if args.skipto == None:
+        ingest_artists(sql_handler, sp_handler, artists)
+        ingest_albums(sql_handler, sp_handler)
+        ingest_tracks(sql_handler, sp_handler)
 
     print(f'[INFO] Database {args.mysql_db} successfully updated.')
