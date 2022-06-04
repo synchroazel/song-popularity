@@ -45,21 +45,21 @@ class MQTT_handler:
         self.client.disconnect()
         print(f'[INFO] Connection with {self.broker}:{self.port} closed.')
 
-    def subscribe(self, topic):
-
-        received_msg = None
+    def subscribe(self, topic, filename='subscribed.txt'):
 
         def on_message(client, userdata, msg):
-            print(f"[INFO] Received `{msg.payload.decode()}` from `{msg.topic}` topic")
-            received_msg = msg.payload
+            print(f"[INFO] Payload successfully received from {msg.topic} topic.")
+
+            global received_msg
+            received_msg = msg.payload.decode("utf-8")
 
         self.client.subscribe(topic)
         self.client.on_message = on_message
 
-
-
         self.client.loop_start()
+
         time.sleep(0.5)
+
         self.client.loop_stop()
         self.client.disconnect()
         print(f'[INFO] Connection with {self.broker}:{self.port} closed.')

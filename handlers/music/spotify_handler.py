@@ -31,9 +31,7 @@ class SpotifyHandler:
 
     def get_track_artist(self, track_id):
         r = self.sp.track(track_id)
-        return {'track_id': r['id'],
-                'artist_id': r['artists'][0]['id'],
-                'artist_name': r['artists'][0]['name']}
+        return r['artists'][0]['id']
 
     def get_track_genres(self, track_id):
         r = self.sp.track(track_id)
@@ -114,10 +112,3 @@ class SpotifyHandler:
                 'artists': [artist['name'] for artist in song['track']['artists']]
             })
         return ret
-
-
-# %%
-
-sp_handler = SpotifyHandler()
-
-sp_handler.get_track_features('08Enc1cpTGEiWPhqHDW6SU')
