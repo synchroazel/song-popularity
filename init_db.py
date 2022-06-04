@@ -25,27 +25,18 @@ def check_database(db_name, host, user, password):
 
 
 def create_database(db_name, host, user, password):
+
     mydb = mysql.connector.connect(host=host, user=user, password=password)
 
     mycursor = mydb.cursor()
 
-    mycursor.execute("SHOW DATABASES")
+    try:
+        mycursor.execute(f"CREATE DATABASE `{db_name}`")
+        print(f'[INFO] Database {db_name} successfully created.')
+        mydb.commit()
+    except mysql.connector.errors.DatabaseError:
+        print(f'[INFO] A database named {db_name} already exist.')
 
-    for db in mycursor:
-
-        try:
-            db = db.decode()
-        except (UnicodeDecodeError, AttributeError):
-            pass
-
-        if args.mysql_db == db[0]:
-            print(f'[INFO] A database named {db_name} already exist. Please try again.')
-            return
-
-    mycursor.execute(f"CREATE DATABASE `{db_name}`")
-    print(f'[INFO] Database {db_name} successfully created.')
-
-    mydb.commit()
     mydb.close()
     return
 
