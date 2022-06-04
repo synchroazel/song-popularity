@@ -168,8 +168,10 @@ if __name__ == "__main__":
                                   password=args.mysql_password,
                                   database=args.mysql_db)
 
-    if not check_tables(sql_handler):
+    try:
         create_tables(sql_handler)
+    except:
+        pass
 
     sp_handler = SpotifyHandler()
 
