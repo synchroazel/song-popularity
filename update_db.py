@@ -8,15 +8,18 @@ from handlers.music.spotify_handler import SpotifyHandler
 from handlers.mysql.mysql_connector import MYSQL_connector
 
 
-def trending_artists(sp_handler, limit=None):
+def get_trending(sp_handler, limit=None):
     artists = list()
+    tracks = list()
+
     top50today = 'https://open.spotify.com/playlist/37i9dQZEVXbIQnj7RRhdSX'
     top50 = sp_handler.get_playlist_tracks(top50today)[:limit]
 
     for item in top50:
         artists.extend(item['artists'])
+        tracks.append(item['track_id'])
 
-    return set(artists)
+    return set(artists), set(tracks)
 
 
 def update_artists(sql_handler, sp_handler, artists, quiet=True):
@@ -29,7 +32,6 @@ def update_artists(sql_handler, sp_handler, artists, quiet=True):
 
         for artist in tqdm(new_artists, desc='[TQDM] Updating artists'):
 
-            print(f'adding {artist}')
             artist_id = sp_handler.get_artist_id(artist)
 
             if not quiet:
@@ -45,7 +47,7 @@ def update_artists(sql_handler, sp_handler, artists, quiet=True):
 
                     sql_handler.insert('artists', (artist_id, artist, popoularity, followers, monthly_listeners))
 
-                    time.sleep(5)
+                    time.sleep(1)
 
         print(f'[INFO] {len(artists)} artists info successfully added to database.')
 
@@ -76,12 +78,12 @@ def update_albums(sql_handler, sp_handler, artists, quiet=True):
             sql_handler.insert('albums', tuple(album.values()))
             sql_handler.insert('albums_artists', (album_id, artist_id))
 
-            time.sleep(5)
+            time.sleep(1)
 
         print(f'[INFO] {len(new_albums)} albums info successfully added to database.')
 
 
-def update_tracks(sql_handler, sp_handler, artists, quiet=True):
+def update_tracks(sql_handler, sp_handler, artists, tracks, quiet=True):
     past_tracks = [item[0] for item in sql_handler.select('tracks', 'id')]
     new_albums = list()
     new_tracks = list()
@@ -94,6 +96,7 @@ def update_tracks(sql_handler, sp_handler, artists, quiet=True):
         new_tracks.extend(sp_handler.get_songs_ids_by_album(album_id))
 
     new_tracks = set(new_tracks).difference(past_tracks)
+    new_tracks = new_tracks.union(tracks)
 
     print(f'[INFO] {len(new_tracks)} new tracks to add to database.')
 
@@ -118,7 +121,7 @@ def update_tracks(sql_handler, sp_handler, artists, quiet=True):
                     sql_handler.insert('tracks_artists', (track_id, artist_id))
                     sql_handler.insert('albums_tracks', (track_id, album_id))
 
-                    time.sleep(5)
+                    time.sleep(1)
 
         print(f'[INFO] {len(new_tracks)} tracks info successfully added to database.')
 
@@ -129,7 +132,8 @@ if __name__ == "__main__":
     arg_parser.add_argument("--mysql_host", type=str, required=True, default=None, help="The MySQL host")
     arg_parser.add_argument("--mysql_user", type=str, required=True, default=None, help="The MySQL username")
     arg_parser.add_argument("--mysql_password", type=str, required=True, default=None, help="The MySQL password")
-    arg_parser.add_argument("--skipto", type=str, choices=['albums', 'tracks'], required=False, default=None, help="Skip to specific phase of ingestion")
+    arg_parser.add_argument("--skipto", type=str, choices=['albums', 'tracks'], required=False, default=None,
+                            help="Skip to specific phase of ingestion")
 
     args = arg_parser.parse_args()
 
@@ -140,20 +144,20 @@ if __name__ == "__main__":
 
     sp_handler = SpotifyHandler()
 
-    new_artists = trending_artists(sp_handler)
+    new_artists, new_tracks = get_trending(sp_handler)
 
     if args.skipto == 'tracks':
         print(f'[INFO] Skipping to tracks ingestion phase.')
-        update_tracks(sql_handler, sp_handler, new_artists)
+        update_tracks(sql_handler, sp_handler, new_artists, new_tracks, quiet=False)
 
     if args.skipto == 'albums':
         print(f'[INFO] Skipping to albums ingestion phase.')
         update_albums(sql_handler, sp_handler, new_artists)
-        update_tracks(sql_handler, sp_handler, new_artists)
+        update_tracks(sql_handler, sp_handler, new_artists, new_tracks)
 
     if args.skipto == None:
         update_artists(sql_handler, sp_handler, new_artists)
         update_albums(sql_handler, sp_handler, new_artists)
-        update_tracks(sql_handler, sp_handler, new_artists)
+        update_tracks(sql_handler, sp_handler, new_artists, new_tracks)
 
     print(f'[INFO] Database {args.mysql_db} successfully updated.')

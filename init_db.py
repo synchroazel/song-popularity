@@ -25,7 +25,6 @@ def check_database(db_name, host, user, password):
 
 
 def create_database(db_name, host, user, password):
-
     mydb = mysql.connector.connect(host=host, user=user, password=password)
 
     mycursor = mydb.cursor()
@@ -62,7 +61,6 @@ def past_trending_artists(charts_path='music_charts', limit=None):
 
 
 def ingest_artists(sql_handler, sp_handler, artists, quiet=True):
-
     for artist in tqdm(artists, desc='[TQDM] Updating artists'):
 
         artist_id = sp_handler.get_artist_id(artist)
@@ -75,19 +73,17 @@ def ingest_artists(sql_handler, sp_handler, artists, quiet=True):
             monthly_listeners = sp_handler.get_monthly_listeners(artist_id)
 
             if monthly_listeners != None:
-
                 popoularity = sp_handler.get_artist_info(artist_id)['popularity']
                 followers = sp_handler.get_artist_info(artist_id)['followers']
 
                 sql_handler.insert('artists', (artist_id, artist, popoularity, followers, monthly_listeners))
 
-                time.sleep(5)
+                time.sleep(1)
 
     print(f'[INFO] {len(artists)} artists info successfully added to database.')
 
 
 def ingest_albums(sql_handler, sp_handler, quiet=True):
-
     artist_ids = [item[0] for item in sql_handler.select('artists', 'id')]
 
     n_album = 0
@@ -110,13 +106,12 @@ def ingest_albums(sql_handler, sp_handler, quiet=True):
 
             n_album += 1
 
-            # time.sleep(2)
+            time.sleep(1)
 
     print(f'[INFO] {n_album} albums info successfully added to database.')
 
 
 def ingest_tracks(sql_handler, sp_handler, quiet=True):
-
     album_ids = [item[0] for item in sql_handler.select('albums', 'id')]
 
     n_tracks = 0
@@ -127,7 +122,7 @@ def ingest_tracks(sql_handler, sp_handler, quiet=True):
 
         for track_id in track_ids:
 
-            if (track_id,) not in sql_handler.select('tracks','id'):
+            if (track_id,) not in sql_handler.select('tracks', 'id'):
 
                 if not quiet:
                     print(f'[INFO] adding track: {track_id} | from album: {album_id}')
@@ -136,18 +131,19 @@ def ingest_tracks(sql_handler, sp_handler, quiet=True):
                 track_info = sp_handler.get_track_info(track_id)
 
                 if track_info != None and track_feats != None:
-
                     sql_handler.insert('track_features', tuple(track_feats.values()))
                     sql_handler.insert('tracks', tuple(track_info.values()))
 
-                    artist_id = sql_handler.select('albums_artists', 'artist_id', f'album_id=\'{album_id}\'')[0][0]
+                    # artist_id = sql_handler.select('albums_artists', 'artist_id', f'album_id=\'{album_id}\'')[0][0]
+
+                    artist_id = sp_handler.get_track_artist(track_id)
 
                     sql_handler.insert('tracks_artists', (track_id, artist_id))
                     sql_handler.insert('albums_tracks', (track_id, album_id))
 
                     n_tracks += 1
 
-                    # time.sleep(2)
+                    time.sleep(1)
 
     print(f'[INFO] {n_tracks} tracks info successfully added to database.')
 
@@ -158,8 +154,10 @@ if __name__ == "__main__":
     arg_parser.add_argument("--mysql_host", type=str, required=True, default=None, help="The MySQL host")
     arg_parser.add_argument("--mysql_user", type=str, required=True, default=None, help="The MySQL username")
     arg_parser.add_argument("--mysql_password", type=str, required=True, default=None, help="The MySQL password")
-    arg_parser.add_argument("--limit", type=int, required=False, default=-1, help="Limit the number of artists to import")
-    arg_parser.add_argument("--skipto", type=str,choices=['albums', 'tracks'], required=False, default=None, help="Skip to specific phase of ingestion")
+    arg_parser.add_argument("--limit", type=int, required=False, default=-1,
+                            help="Limit the number of artists to import")
+    arg_parser.add_argument("--skipto", type=str, choices=['albums', 'tracks'], required=False, default=None,
+                            help="Skip to specific phase of ingestion")
 
     args = arg_parser.parse_args()
 
@@ -169,6 +167,9 @@ if __name__ == "__main__":
                                   user=args.mysql_user,
                                   password=args.mysql_password,
                                   database=args.mysql_db)
+
+    if not check_tables(sql_handler):
+        create_tables(sql_handler)
 
     sp_handler = SpotifyHandler()
 
