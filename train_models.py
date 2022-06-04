@@ -1,11 +1,8 @@
 import argparse
 import pickle
+from datetime import date, timedelta
 from sklearn.linear_model import Ridge
 from sklearn.preprocessing import StandardScaler
-
-
-from datetime import date, datetime, timedelta
-import pandas as pd
 
 from handlers.mysql.mysql_connector import MYSQL_connector
 
@@ -37,8 +34,6 @@ def generate_model(x_train, y_train, filename):
     print(f'[INFO] Model {filename} successfully created and saved.')
 
 
-
-
 if __name__ == "__main__":
     arg_parser = argparse.ArgumentParser(description="Initialize a MySQL database with songs information.")
     arg_parser.add_argument("--mysql_db", type=str, required=True, default=None, help="The MySQL database")
@@ -58,14 +53,13 @@ if __name__ == "__main__":
     today = date.today()
 
     for months in [6, 12]:
-
-        pastdate = today - timedelta(days=months*30)
+        pastdate = today - timedelta(days=months * 30)
 
         cur_df = df.loc[df['release_date'] < pastdate].copy()
 
         x, y = preprocess_data(cur_df)
 
-        model_name = f'models/model_{months}m.pickle'
+        model_name = f'models/model{months}.pickle'
 
         generate_model(x, y, model_name)
 
