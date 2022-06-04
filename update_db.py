@@ -101,21 +101,24 @@ def update_tracks(sql_handler, sp_handler, artists, quiet=True):
 
         for track_id in tqdm(new_tracks, desc='[TQDM] Updating tracks'):
 
-            if not quiet:
-                print(f'[INFO] adding track: {track_id}')
+            if (track_id,) not in sql_handler.select('tracks', 'id'):
 
-            track_feats = sp_handler.get_track_features(track_id)
-            track_info = sp_handler.get_track_info(track_id)
+                if not quiet:
+                    print(f'[INFO] adding track: {track_id}')
 
-            sql_handler.insert('track_features', tuple(track_feats.values()))
-            sql_handler.insert('tracks', tuple(track_info.values()))
+                track_feats = sp_handler.get_track_features(track_id)
+                track_info = sp_handler.get_track_info(track_id)
 
-            artist_id = sql_handler.select('albums_artists', 'artist_id', f'album_id=\'{album_id}\'')[0][0]
+                if track_info != None and track_feats != None:
+                    sql_handler.insert('track_features', tuple(track_feats.values()))
+                    sql_handler.insert('tracks', tuple(track_info.values()))
 
-            sql_handler.insert('tracks_artists', (track_id, artist_id))
-            sql_handler.insert('albums_tracks', (track_id, album_id))
+                    artist_id = sql_handler.select('albums_artists', 'artist_id', f'album_id=\'{album_id}\'')[0][0]
 
-            time.sleep(5)
+                    sql_handler.insert('tracks_artists', (track_id, artist_id))
+                    sql_handler.insert('albums_tracks', (track_id, album_id))
+
+                    time.sleep(5)
 
         print(f'[INFO] {len(new_tracks)} tracks info successfully added to database.')
 
@@ -126,6 +129,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("--mysql_host", type=str, required=True, default=None, help="The MySQL host")
     arg_parser.add_argument("--mysql_user", type=str, required=True, default=None, help="The MySQL username")
     arg_parser.add_argument("--mysql_password", type=str, required=True, default=None, help="The MySQL password")
+    arg_parser.add_argument("--skipto", type=str, choices=['albums', 'tracks'], required=False, default=None, help="Skip to specific phase of ingestion")
 
     args = arg_parser.parse_args()
 
@@ -138,8 +142,18 @@ if __name__ == "__main__":
 
     new_artists = trending_artists(sp_handler)
 
-    update_artists(sql_handler, sp_handler, new_artists, quiet=False)
-    update_albums(sql_handler, sp_handler, new_artists, quiet=False)
-    update_tracks(sql_handler, sp_handler, new_artists, quiet=False)
+    if args.skipto == 'tracks':
+        print(f'[INFO] Skipping to tracks ingestion phase.')
+        update_tracks(sql_handler, sp_handler)
+
+    if args.skipto == 'albums':
+        print(f'[INFO] Skipping to albums ingestion phase.')
+        update_albums(sql_handler, sp_handler)
+        update_tracks(sql_handler, sp_handler)
+
+    if args.skipto == None:
+        update_artists(sql_handler, sp_handler, new_artists)
+        update_albums(sql_handler, sp_handler)
+        update_tracks(sql_handler, sp_handler)
 
     print(f'[INFO] Database {args.mysql_db} successfully updated.')
