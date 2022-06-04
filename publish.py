@@ -1,13 +1,12 @@
 import argparse
-from datetime import date
 import os
 import pickle
-from pprint import pprint
+from datetime import date
 from sklearn.preprocessing import StandardScaler
 
+from handlers.mqtt.mqtt_handler import MQTT_handler
 from handlers.music.spotify_handler import SpotifyHandler
 from handlers.mysql.mysql_connector import MYSQL_connector
-from handlers.mqtt.mqtt_handler import MQTT_handler
 
 
 def preprocess_data(df):
@@ -51,21 +50,21 @@ def make_predictions(df, new_songs, new_artists):
         model2_preds = model.predict(x)
         actual = y.tolist()
 
-    payload = {'last_update': date.today().isoformat(),
-               'trending_songs': list()}
+    payload = {"last_update": date.today().isoformat(),
+               "trending_songs": list()}
 
     for i in range(len(new_songs)):
 
         if type(new_artists[i]) == list:
             new_artists[i] = ' & '.join(new_artists[i])
 
-        payload['trending_songs'].append(
+        payload["trending_songs"].append(
             {
-                'track_name': new_songs[i],
-                'artist_name': new_artists[i],
-                'current_popularity': int(actual[i] * 100),
-                'in_6_months': int(model1_preds[i] * 100),
-                'in_1_2months': int(model2_preds[i] * 100)
+                "track_name": new_songs[i],
+                "artist_name": new_artists[i],
+                "current_popularity": int(actual[i] * 100),
+                "in_6_months": int(model1_preds[i] * 100),
+                "in_12_months": int(model2_preds[i] * 100)
             }
         )
 
@@ -88,10 +87,7 @@ if __name__ == "__main__":
 
     sp_handler = SpotifyHandler()
 
-    # new_songs, new_artists = trending_songs(sp_handler)
-
-    new_songs = ['After Hours', 'Fiamme Alte']  # just trying
-    new_artists = ['artist 1', 'artist 2']
+    new_songs, new_artists = trending_songs(sp_handler)
 
     df = sql_handler.create_pandas_df('sql_queries/extract_info.sql')
 
