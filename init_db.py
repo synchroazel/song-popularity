@@ -43,7 +43,9 @@ def past_trending_artists(charts_path='music_charts', limit=None):
         cur = import_chart(os.path.join(charts_path, chart))
         artists.extend(cur.artist.tolist())
 
-    return artists[:limit]
+    artists = set(artists)
+
+    return list(artists)[:limit]
 
 
 def ingest_artists(sql_handler, sp_handler, artists, quiet=True):
