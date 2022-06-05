@@ -1,7 +1,7 @@
 import argparse
 import pickle
 from datetime import date, timedelta
-from sklearn.linear_model import Ridge
+from sklearn.linear_model import Ridge, Lasso
 from sklearn.preprocessing import StandardScaler
 
 from handlers.mysql.mysql_connector import MYSQL_connector
