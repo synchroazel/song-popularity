@@ -78,6 +78,7 @@ class MYSQL_connector:
             mycursor.execute(query)
         except mysql.connector.Error as err:
             if not err.msg.startswith('Duplicate entry'):
+                #if not err.msg.startswith('Cannot add or update a child row'):
                 print(err.msg)
         finally:
             self.close_connection()

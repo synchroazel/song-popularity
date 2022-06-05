@@ -33,6 +33,10 @@ class SpotifyHandler:
         r = self.sp.track(track_id)
         return r['artists'][0]['id']
 
+    def get_track_album(self, track_id):
+        r = self.sp.track(track_id)
+        return r['album']['id']
+
     def get_track_genres(self, track_id):
         r = self.sp.track(track_id)
 
@@ -79,14 +83,14 @@ class SpotifyHandler:
         else:
             return None
 
-    def get_artist_albums_ids(self, artist_id):
+    def get_artist_albums(self, artist_id):
         albums_info = self.sp.artist_albums(artist_id, limit=50, album_type=['album', 'single'])
         ret = []
         for item in albums_info['items']:
             ret.append(item['id'])
         return ret
 
-    def get_songs_ids_by_album(self, album_id):
+    def get_album_tracks(self, album_id):
         songs = self.sp.album_tracks(album_id, limit=50)
         ret = []
         for song in songs['items']:
