@@ -146,7 +146,7 @@ def ingest_tracks(sql_handler, sp_handler, new_tracks, new_artists, quiet=True):
 
                         if (track_id,) not in sql_handler.select('tracks', 'id'):
 
-                            if random.choices([0, 1], [2 / 3, 1 / 3])[0]:
+                            if random.choices([0, 1], [3 / 4, 1 / 4])[0]:
 
                                 track_feats = sp_handler.get_track_features(track_id)
                                 track_info = sp_handler.get_track_info(track_id)
