@@ -31,16 +31,21 @@ def trending_songs(sp_handler):
     new_artists = list()
 
     for item in sp_handler.get_playlist_tracks(top50today):
+        print(item)
         new_songs.append(item['track_name'])
         new_artists.append(item['artists'])
 
-    return new_songs, new_artists
+    return new_songs, new_artists,
 
 
 def make_predictions(df, new_songs, new_artists):
     df = df.loc[df['track_name'].isin(new_songs)].copy()
 
+    print(df)
+
     x, y = preprocess_data(df)
+
+    print(y.tolist())
 
     for model_name in os.listdir('models'):
         with open(os.path.join('models', model_name), 'rb') as file:
@@ -49,6 +54,8 @@ def make_predictions(df, new_songs, new_artists):
         model1_preds = model.predict(x)
         model2_preds = model.predict(x)
         actual = y.tolist()
+
+
 
     payload = {"last_update": date.today().isoformat(),
                "trending_songs": list()}
@@ -91,7 +98,15 @@ if __name__ == "__main__":
 
     df = sql_handler.create_pandas_df('sql_queries/extract_info.sql')
 
+    df.to_csv('tmp.csv')
+
     predictions = make_predictions(df, new_songs, new_artists)
+
+    from pprint import pprint
+
+    pprint(predictions)
+
+    exit()
 
     mqtt_handler = MQTT_handler()
 
