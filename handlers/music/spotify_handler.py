@@ -19,15 +19,19 @@ class SpotifyHandler:
 
     def get_album_info(self, album_id):
         r = self.sp.album(album_id)
-        return {'album_id': r['id'],
-                'album_name': r['name'],
-                'release_date': r['release_date']}
+        return {
+            'album_id': r['id'],
+            'album_name': r['name'],
+            'release_date': r['release_date']
+        }
 
     def get_track_info(self, track_id):
         r = self.sp.track(track_id)
-        return {'track_id': r['id'],
-                'track_name': r['name'],
-                'track_popularity': r['popularity']}
+        return {
+            'track_id': r['id'],
+            'track_name': r['name'],
+            'track_popularity': r['popularity']
+        }
 
     def get_track_artist(self, track_id):
         r = self.sp.track(track_id)
@@ -46,10 +50,10 @@ class SpotifyHandler:
             return self.sp.artist(r['artists'][0]['id'])['genres']
 
     def get_track_features(self, track_id):
-
         r = self.sp.audio_features(track_id)[0]
 
-        if r is None: return None
+        if r is None:
+            return None
 
         excluded = ('uri', 'type', 'analysis_url', 'track_href', 'id')
         features = {key: value for key, value in r.items() if key not in excluded}
@@ -97,22 +101,26 @@ class SpotifyHandler:
             ret.append(song["id"])
         return ret
 
-    def get_song_id_by_aname_and_artist(self, track_name, artist_name):
+    def get_track_id(self, track_name, artist_name):
         info = self.sp.search(q="artist:" + artist_name + " track:" + track_name, type="track")
-        return info['tracks']['items'][0]['album']['id']
+        return info['tracks']['items'][0]['id']
 
     def get_artist_info(self, artist_id):
         artist = self.sp.artist(artist_id)
-        return {"followers": int(artist['followers']['total']),
-                "popularity": int(artist["popularity"])}
+        return {
+            "followers": int(artist['followers']['total']),
+            "popularity": int(artist["popularity"])
+        }
 
     def get_playlist_tracks(self, playlist_id):
         plst_tracks = self.sp.playlist_items(playlist_id=playlist_id)
         ret = list()
         for song in plst_tracks['items']:
-            ret.append({
-                'track_name': song['track']['name'],
-                'track_id': song['track']['id'],
-                'artists': [artist['name'] for artist in song['track']['artists']]
-            })
+            ret.append(
+                {
+                    'track_name': song['track']['name'],
+                    'track_id': song['track']['id'],
+                    'artists': [artist['name'] for artist in song['track']['artists']]
+                }
+            )
         return ret

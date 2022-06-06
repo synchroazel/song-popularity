@@ -1,7 +1,8 @@
-import mysql.connector
-from mysql.connector import errorcode
 import warnings
+
+import mysql.connector
 import pandas as pd
+from mysql.connector import errorcode
 
 
 class MYSQL_connector:
@@ -78,7 +79,6 @@ class MYSQL_connector:
             mycursor.execute(query)
         except mysql.connector.Error as err:
             if not err.msg.startswith('Duplicate entry'):
-                #if not err.msg.startswith('Cannot add or update a child row'):
                 print(err.msg)
         finally:
             self.close_connection()
