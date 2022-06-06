@@ -1,5 +1,4 @@
 import argparse
-import os
 import random
 import time
 
@@ -9,21 +8,20 @@ from tqdm import tqdm
 
 from handlers.music.spotify_handler import SpotifyHandler
 from handlers.mysql.mysql_connector import MYSQL_connector
-from handlers.utils import import_chart
 
 
-def get_trending(sp_handler, limit=None):
+def get_trending(sp_handler):
     artists = list()
     tracks = list()
 
     top50today = 'https://open.spotify.com/playlist/37i9dQZEVXbIQnj7RRhdSX'
-    top50 = sp_handler.get_playlist_tracks(top50today)[:limit]
+    top50 = sp_handler.get_playlist_tracks(top50today)
 
     for item in top50:
         artists.extend(item['artists'])
         tracks.append(item['track_id'])
 
-    return artists[:limit], tracks[:limit]
+    return artists, tracks
 
 
 def create_database(db_name, host, user, password):
@@ -48,16 +46,6 @@ def create_tables(sql_handler):
         print('[INFO] Tables successfully created.')
     except:
         print('[INFO] Tables already exists.')
-
-
-def past_trending_artists(charts_path='music_charts', limit=None):
-    artists = list()
-
-    for chart in os.listdir(charts_path):
-        cur = import_chart(os.path.join(charts_path, chart))
-        artists.extend(cur.artist.tolist())
-
-    return artists[:limit]
 
 
 def ingest_artists(sql_handler, sp_handler, artists, quiet=True):
@@ -151,7 +139,7 @@ def ingest_tracks(sql_handler, sp_handler, new_tracks, new_artists, quiet=True):
                                 track_feats = sp_handler.get_track_features(track_id)
                                 track_info = sp_handler.get_track_info(track_id)
 
-                                if track_info != None and track_feats != None and artist_id != None:
+                                if track_info is not None and track_feats is not None and artist_id is not None:
 
                                     if not quiet:
                                         print(f'[INFO] adding track {track_id} from album {album_id}')
@@ -198,15 +186,12 @@ def ingest_tracks(sql_handler, sp_handler, new_tracks, new_artists, quiet=True):
 
 
 if __name__ == "__main__":
-    arg_parser = argparse.ArgumentParser(description="Initialize a MySQL database with songs information.")
+    arg_parser = argparse.ArgumentParser(description="Update a MySQL database with songs information.")
     arg_parser.add_argument("--mysql_db", type=str, required=True, default=None, help="The MySQL database")
     arg_parser.add_argument("--mysql_host", type=str, required=True, default=None, help="The MySQL host")
     arg_parser.add_argument("--mysql_user", type=str, required=True, default=None, help="The MySQL username")
     arg_parser.add_argument("--mysql_password", type=str, required=True, default=None, help="The MySQL password")
-    arg_parser.add_argument("--limit", type=int, required=False, default=-1,
-                            help="Limit the number of artists to import")
-    arg_parser.add_argument("--skipto", type=str, choices=['albums', 'tracks'], required=False, default=None,
-                            help="Skip to specific phase of ingestion")
+    arg_parser.add_argument("--limit", type=int, required=False, default=-1, help="Limit the number of artists to import")
 
     args = arg_parser.parse_args()
 
@@ -221,8 +206,8 @@ if __name__ == "__main__":
 
     spt = SpotifyHandler()
 
-    trending_artists, trending_tracks = get_trending(spt, limit=args.limit)
+    trending_artists, trending_tracks = get_trending(spt)
 
-    ingest_artists(sql, spt, trending_artists, quiet=False)
-    ingest_albums(sql, spt, trending_artists, quiet=False)
-    ingest_tracks(sql, spt, trending_tracks, trending_artists, quiet=False)
+    ingest_artists(sql, spt, trending_artists)
+    ingest_albums(sql, spt, trending_artists)
+    ingest_tracks(sql, spt, trending_tracks, trending_artists)

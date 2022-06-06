@@ -10,6 +10,14 @@ from handlers.music.spotify_handler import SpotifyHandler
 from handlers.mysql.mysql_connector import MYSQL_connector
 
 
+def preprocess_data(df):
+    x = df.drop(columns=['artist_name', 'track_name', 'track_popularity', 'release_date'])
+    sc = StandardScaler()
+    sc.fit_transform(x)
+
+    return sc.transform(x)
+
+
 def get_trending(sp_handler):
     artists = list()
     tracks = list()
@@ -21,17 +29,53 @@ def get_trending(sp_handler):
         artists.append(item['artists'])
         tracks.append(item['track_name'])
 
-    return tracks, artists
+    return artists, tracks
 
 
-def scale_data(x):
-    sc = StandardScaler()
-    sc.fit_transform(x)
-    return sc.transform(x)
+def make_predictions(df, songs, artists):
+    x = preprocess_data(df)
+
+    global preds1, preds2
+
+    for model_name in os.listdir('models'):
+        with open(os.path.join('models', model_name), 'rb') as file:
+            model = pickle.load(file)
+
+        preds1 = model.predict(x)
+        preds2 = model.predict(x)
+
+    payload = {"last_update": date.today().isoformat(),
+               "trending_songs": list()}
+
+    for i in range(len(songs)):
+
+        if type(artists[i]) == list:
+            artists[i] = ' & '.join(artists[i])
+
+        cur_song = songs[i]
+        cur_artist = artists[i]
+        cur_popularity = df[df.track_name == songs[i]].track_popularity.tolist()
+
+        try:
+            cur_popularity = int(cur_popularity[0])
+        except IndexError:
+            cur_popularity = 'ND'
+
+        payload["trending_songs"].append(
+            {
+                "track_name": cur_song,
+                "artist_name": cur_artist,
+                "current_popularity": cur_popularity,
+                "in_6_months": int(preds1[i] * 100),
+                "in_12_months": int(preds2[i] * 100)
+            }
+        )
+
+    return payload
 
 
 if __name__ == "__main__":
-    arg_parser = argparse.ArgumentParser(description="Update a MySQL database with songs information.")
+    arg_parser = argparse.ArgumentParser(description="Make and public predictions with songs information from MySQL database.")
     arg_parser.add_argument("--mysql_db", type=str, required=True, default=None, help="The MySQL database")
     arg_parser.add_argument("--mysql_host", type=str, required=True, default=None, help="The MySQL host")
     arg_parser.add_argument("--mysql_user", type=str, required=True, default=None, help="The MySQL username")
@@ -39,52 +83,23 @@ if __name__ == "__main__":
 
     args = arg_parser.parse_args()
 
-    sql_handler = MYSQL_connector(host=args.mysql_host,
-                                  user=args.mysql_user,
-                                  password=args.mysql_password,
-                                  database=args.mysql_db)
+    sql = MYSQL_connector(host=args.mysql_host,
+                          user=args.mysql_user,
+                          password=args.mysql_password,
+                          database=args.mysql_db)
 
-    sp_handler = SpotifyHandler()
+    spt = SpotifyHandler()
 
-    new_songs, new_artists = get_trending(sp_handler)
+    new_artists, new_songs = get_trending(spt)
 
-    features_df = sql_handler.create_pandas_df('sql_queries/extract_info.sql')
+    features_df = sql.create_pandas_df('sql_queries/extract_info.sql')
+
     features_df = features_df.loc[features_df['track_name'].isin(new_songs)]
-    features_df = features_df.sort_values(by='track_popularity').drop_duplicates(subset='track_name', keep='first')
+    features_df = features_df.sort_values(by='track_popularity')
+    features_df.drop_duplicates(subset='track_name')
 
-    features_df_x = features_df.drop(columns=['artist_name', 'track_name', 'track_popularity', 'release_date'])
-    features_df_x = scale_data(features_df_x)
-
-    for model_name in os.listdir('models'):
-        with open(os.path.join('models', model_name), 'rb') as file:
-            model = pickle.load(file)
-
-        preds1 = model.predict(features_df_x)
-        preds2 = model.predict(features_df_x)
-
-    features_df['preds1'] = [int(n * 100) for n in preds1]
-    features_df['preds2'] = [int(n * 100) for n in preds2]
-
-    payload = {"last_update": date.today().isoformat(),
-               "trending_songs": list()}
-
-    how_many = 10
-
-    for song in new_songs[:how_many]:
-        row = features_df.loc[features_df.track_name == song]
-
-        print(row)
-
-        payload['trending_songs'].append(
-            {
-                "track_name": row.track_name,
-                "artist_name": row.artist_name,
-                "current_popularity": row.track_popularity,
-                "in_6_months": row.preds1,
-                "in_12_months": row.preds2
-            }
-        )
+    predictions = make_predictions(features_df, new_songs, new_artists)
 
     mqtt_handler = MQTT_handler()
 
-    mqtt_handler.publish(str(payload), 'song-popularity/predictions')
+    mqtt_handler.publish(str(predictions), 'song-popularity/predictions')

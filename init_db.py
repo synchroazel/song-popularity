@@ -4,12 +4,23 @@ import random
 import time
 
 import mysql.connector
+import pandas as pd
 from dateutil.parser import isoparse
 from tqdm import tqdm
 
 from handlers.music.spotify_handler import SpotifyHandler
 from handlers.mysql.mysql_connector import MYSQL_connector
-from handlers.utils import import_chart
+
+
+def import_chart(filepath):
+    chart = pd.read_csv(filepath, header=1)
+    chart.URL = chart.URL.str.replace('https://open.spotify.com/track/', '', regex=True)
+    chart = chart.rename(columns={'URL': 'track_id',
+                                  'Streams': 'streams',
+                                  'Artist': 'artist',
+                                  'Track Name': 'track_name'})
+
+    return chart.drop('Position', axis=1)
 
 
 def create_database(db_name, host, user, password):
@@ -36,7 +47,7 @@ def create_tables(sql_handler):
         print('[INFO] Tables already exists.')
 
 
-def past_trending_artists(charts_path='music_charts', limit=None):
+def past_trending_artists(charts_path='music_charts', limit=-1):
     artists = list()
 
     for chart in os.listdir(charts_path):
@@ -163,10 +174,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("--mysql_host", type=str, required=True, default=None, help="The MySQL host")
     arg_parser.add_argument("--mysql_user", type=str, required=True, default=None, help="The MySQL username")
     arg_parser.add_argument("--mysql_password", type=str, required=True, default=None, help="The MySQL password")
-    arg_parser.add_argument("--limit", type=int, required=False, default=-1,
-                            help="Limit the number of artists to import")
-    arg_parser.add_argument("--skipto", type=str, choices=['albums', 'tracks'], required=False, default=None,
-                            help="Skip to specific phase of ingestion")
+    arg_parser.add_argument("--limit", type=int, required=False, default=-1, help="Limit the number of artists to import")
 
     args = arg_parser.parse_args()
 
@@ -186,6 +194,6 @@ if __name__ == "__main__":
 
     past_artists = past_trending_artists(limit=args.limit)
 
-    ingest_artists(sql, spt, past_artists, quiet=False)
-    ingest_albums(sql, spt, past_artists, quiet=False)
-    ingest_tracks(sql, spt, past_artists, quiet=False)
+    ingest_artists(sql, spt, past_artists)
+    ingest_albums(sql, spt, past_artists)
+    ingest_tracks(sql, spt, past_artists)
