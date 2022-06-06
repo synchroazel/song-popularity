@@ -18,6 +18,7 @@ Thumbs.db
 .cache
 **/__pycache__
 Dockerfile
+models/*
 secrets.py
 venv
 

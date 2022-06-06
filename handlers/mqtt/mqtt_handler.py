@@ -46,7 +46,7 @@ class MQTT_handler:
         self.client.disconnect()
         print(f'[INFO] Connection with {self.broker}:{self.port} closed.')
 
-    def subscribe(self, topic, filename='subscribed.txt'):
+    def subscribe(self, topic):
 
         def on_message(client, userdata, msg):
             print(f"[INFO] Payload successfully received from {msg.topic} topic.")
