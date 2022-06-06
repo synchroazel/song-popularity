@@ -3,7 +3,6 @@ import os
 import pickle
 from datetime import date
 
-import numpy as np
 from sklearn.preprocessing import StandardScaler
 
 from handlers.mqtt.mqtt_handler import MQTT_handler
@@ -67,8 +66,8 @@ def make_predictions(df, songs, artists):
                 "track_name": cur_song,
                 "artist_name": cur_artist,
                 "current_popularity": cur_popularity,
-                "in_6_months": np.round(preds1[i]),
-                "in_12_months": np.round(preds2[i])
+                "in_6_months": int(preds1[i]),
+                "in_12_months": int(preds2[i])
             }
         )
 
