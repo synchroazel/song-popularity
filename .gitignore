@@ -17,7 +17,7 @@ Thumbs.db
 .ipynb_checkpoints/
 .cache
 **/__pycache__
+Dockerfile
 secrets.py
-testing_ground.ipynb
 venv
 
