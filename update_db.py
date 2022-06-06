@@ -11,6 +11,10 @@ from handlers.mysql.mysql_connector import MYSQL_connector
 
 
 def get_trending(sp_handler):
+    """
+    Returns currently trending artists and songs in Italy. The Top50today playlist is used to this purpose.
+    """
+
     artists = list()
     tracks = list()
 
@@ -25,6 +29,10 @@ def get_trending(sp_handler):
 
 
 def create_database(db_name, host, user, password):
+    """
+    Create a database named `db_name` if it doesn't already exists.
+    """
+
     mydb = mysql.connector.connect(host=host, user=user, password=password)
 
     mycursor = mydb.cursor()
@@ -41,6 +49,10 @@ def create_database(db_name, host, user, password):
 
 
 def create_tables(sql_handler):
+    """
+    Create tables inside the database if they don't already exists.
+    """
+
     try:
         sql_handler.execute_query('sql_queries/create_tables.sql')
         print('[INFO] Tables successfully created.')
@@ -48,7 +60,11 @@ def create_tables(sql_handler):
         print('[INFO] Tables already exists.')
 
 
-def ingest_artists(sql_handler, sp_handler, artists, quiet=True):
+def update_artists(sql_handler, sp_handler, artists, quiet=True):
+    """
+    First update step. Ingest into the database data about every currently trending artist.
+    """
+
     n_artists = 0
 
     for artist in tqdm(artists, desc='[TQDM] Updating artists'):
@@ -78,7 +94,11 @@ def ingest_artists(sql_handler, sp_handler, artists, quiet=True):
     print(f'[INFO] {n_artists} artists info successfully added to database.')
 
 
-def ingest_albums(sql_handler, sp_handler, artists, quiet=True):
+def update_albums(sql_handler, sp_handler, artists, quiet=True):
+    """
+    Second update step. Ingest into the database data about every album from every currently trending artist.
+    """
+
     n_album = 0
 
     for artist in tqdm(artists, desc='[TQDM] Updating albums'):
@@ -113,7 +133,12 @@ def ingest_albums(sql_handler, sp_handler, artists, quiet=True):
     print(f'[INFO] {n_album} albums info successfully added to database.')
 
 
-def ingest_tracks(sql_handler, sp_handler, new_tracks, new_artists, quiet=True):
+def update_tracks(sql_handler, sp_handler, new_tracks, new_artists, quiet=True):
+    """
+    Third update step. Ingest into the database data about every track in every album from every currently trending artist.
+    """
+
+
     n_tracks = 0
 
     for artist in tqdm(new_artists, desc='[TQDM] Updating tracks'):
@@ -134,6 +159,10 @@ def ingest_tracks(sql_handler, sp_handler, new_tracks, new_artists, quiet=True):
 
                         if (track_id,) not in sql_handler.select('tracks', 'id'):
 
+                            # Notice that, for time purposes, only 1/4 of the tracks from every listed album has been
+                            # actually imported into the database. Removing the following condition will ingest every
+                            # track from every album from every given artist, resulting in a much slower process.
+
                             if random.choices([0, 1], [3 / 4, 1 / 4])[0]:
 
                                 track_feats = sp_handler.get_track_features(track_id)
@@ -153,6 +182,11 @@ def ingest_tracks(sql_handler, sp_handler, new_tracks, new_artists, quiet=True):
                                     n_tracks += 1
 
                                     time.sleep(2)
+
+    # What if a song is so new it still doesn't appear in an album?
+    # What if one of the currently trending songs is not ingested in the db because of the sampling explained above?
+
+    # We re-iterate through each trending song to make sure thy're all inserted into the db.
 
     for track_id, artist in zip(new_tracks, new_artists):
 
@@ -208,6 +242,6 @@ if __name__ == "__main__":
 
     trending_artists, trending_tracks = get_trending(spt)
 
-    ingest_artists(sql, spt, trending_artists)
-    ingest_albums(sql, spt, trending_artists)
-    ingest_tracks(sql, spt, trending_tracks, trending_artists)
+    update_artists(sql, spt, trending_artists)  # import every trending artist
+    update_albums(sql, spt, trending_artists)  # import every album from every trending artist
+    update_tracks(sql, spt, trending_tracks, trending_artists)  # import every track from every album from every trending artist

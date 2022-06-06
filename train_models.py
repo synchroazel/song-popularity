@@ -9,6 +9,10 @@ from handlers.mysql.mysql_connector import MYSQL_connector
 
 
 def preprocess_data(df):
+    """
+    Returns rescaled features of a given dataframe of song features.
+    """
+
     y = df.track_popularity
     x = df.drop(columns=['artist_name', 'track_name', 'track_popularity', 'release_date'])
 
@@ -23,6 +27,10 @@ def preprocess_data(df):
 
 
 def generate_model(x_train, y_train, filename):
+    """
+    Generate and train a Ridge regression model with supplied data.
+    """
+
     ridge_regression = Ridge()
     ridge_regression.fit(x_train, y_train)
 
@@ -51,7 +59,11 @@ if __name__ == "__main__":
 
     today = date.today()
 
+    # Filter songs with release date earlier than 6 and 12 months
+    # then rain 2 models to predict 6-months and 12-months popularity
+
     for months in [6, 12]:
+
         pastdate = today - timedelta(days=months * 30)
 
         cur_df = features_df.loc[features_df['release_date'] < pastdate].copy()
@@ -62,6 +74,7 @@ if __name__ == "__main__":
 
         generate_model(cur_x, cur_y, model_name)
 
+        # save trained models as .pickle
         with open(model_name, 'rb') as file:
             model = pickle.load(file)
 

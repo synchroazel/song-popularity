@@ -13,6 +13,11 @@ from handlers.mysql.mysql_connector import MYSQL_connector
 
 
 def import_chart(filepath):
+    """
+    Imports charts found in given path and returns them as pandas DataFrames.
+    Here the function is used to import charts from 2020 and 2021 with past trending artists and songs.
+    """
+
     chart = pd.read_csv(filepath, header=1)
     chart.URL = chart.URL.str.replace('https://open.spotify.com/track/', '', regex=True)
     chart = chart.rename(columns={'URL': 'track_id',
@@ -24,6 +29,10 @@ def import_chart(filepath):
 
 
 def create_database(db_name, host, user, password):
+    """
+    Create a database named `db_name` if it doesn't already exists.
+    """
+
     mydb = mysql.connector.connect(host=host, user=user, password=password)
 
     mycursor = mydb.cursor()
@@ -40,6 +49,10 @@ def create_database(db_name, host, user, password):
 
 
 def create_tables(sql_handler):
+    """
+    Create tables inside the database if they don't already exists.
+    """
+
     try:
         sql_handler.execute_query('sql_queries/create_tables.sql')
         print('[INFO] Tables successfully created.')
@@ -48,6 +61,10 @@ def create_tables(sql_handler):
 
 
 def past_trending_artists(charts_path='music_charts', limit=-1):
+    """
+    Returns a list of past trending artists from past charts, found in the given `charts_path`.
+    """
+
     artists = list()
 
     for chart in os.listdir(charts_path):
@@ -60,6 +77,10 @@ def past_trending_artists(charts_path='music_charts', limit=-1):
 
 
 def ingest_artists(sql_handler, sp_handler, artists, quiet=True):
+    """
+    First ingestion step. Ingest into the database data about every past trending artist.
+    """
+
     n_artists = 0
 
     for artist in tqdm(artists, desc='[TQDM] Updating artists'):
@@ -90,6 +111,10 @@ def ingest_artists(sql_handler, sp_handler, artists, quiet=True):
 
 
 def ingest_albums(sql_handler, sp_handler, artists, quiet=True):
+    """
+    Second ingestion step. Ingest into the database data about every album from every past trending artist.
+    """
+
     n_album = 0
 
     for artist in tqdm(artists, desc='[TQDM] Updating albums'):
@@ -125,6 +150,10 @@ def ingest_albums(sql_handler, sp_handler, artists, quiet=True):
 
 
 def ingest_tracks(sql_handler, sp_handler, artists, quiet=True):
+    """
+    Third ingestion step. Ingest into the database data about every track in every album from every trending artist.
+    """
+
     n_tracks = 0
 
     for artist in tqdm(artists, desc='[TQDM] Updating tracks'):
@@ -144,6 +173,10 @@ def ingest_tracks(sql_handler, sp_handler, artists, quiet=True):
                     if track_id is not None:
 
                         if (track_id,) not in sql_handler.select('tracks', 'id'):
+
+                            # Notice that, for time purposes, only 1/4 of the tracks from every listed album has been
+                            # actually imported into the database. Removing the following condition will ingest every
+                            # track from every album from every given artist, resulting in a much slower process.
 
                             if random.choices([0, 1], [3 / 4, 1 / 4])[0]:
 
@@ -194,6 +227,6 @@ if __name__ == "__main__":
 
     past_artists = past_trending_artists(limit=args.limit)
 
-    ingest_artists(sql, spt, past_artists)
-    ingest_albums(sql, spt, past_artists)
-    ingest_tracks(sql, spt, past_artists)
+    ingest_artists(sql, spt, past_artists)  # import every past trending artist
+    ingest_albums(sql, spt, past_artists)  # import every album from every past trending artist
+    ingest_tracks(sql, spt, past_artists)  # import every track from every album from every past trending artist

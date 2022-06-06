@@ -11,6 +11,10 @@ from handlers.mysql.mysql_connector import MYSQL_connector
 
 
 def preprocess_data(df):
+    """
+    Returns rescaled features of a given dataframe of song features.
+    """
+
     x = df.drop(columns=['artist_name', 'track_name', 'track_popularity', 'release_date'])
     sc = StandardScaler()
     sc.fit_transform(x)
@@ -19,6 +23,10 @@ def preprocess_data(df):
 
 
 def get_trending(sp_handler):
+    """
+    Returns currently trending artists and songs in Italy. The Top50today playlist is used to this purpose.
+    """
+
     artists = list()
     tracks = list()
 
@@ -33,6 +41,12 @@ def get_trending(sp_handler):
 
 
 def make_predictions(df, songs, artists):
+    """
+    Makes predictions with the trained models using the supplied features df.
+    Lists of trending songs and trending artists are also passed in order to wrap everything into a payload to later
+    publish through MQTT.
+    """
+
     x = preprocess_data(df)
 
     global preds1, preds2
@@ -95,12 +109,18 @@ if __name__ == "__main__":
 
     features_df = sql.create_pandas_df('sql_queries/extract_info.sql')
 
+
     features_df = features_df.loc[features_df['track_name'].isin(new_songs)]
+
+    # The df `features_df` might contain duplicates: meaning multiple entries of a same track, coming from different
+    # versions of the same single/album. In such cases, to make predictions, we only take into account the
+    # entries with the highest popularity.
+
     features_df = features_df.sort_values(by='track_popularity')
     features_df.drop_duplicates(subset='track_name')
 
     predictions = make_predictions(features_df, new_songs, new_artists)
 
     mqtt_handler = MQTT_handler()
-
+    
     mqtt_handler.publish(str(predictions), 'song-popularity/predictions')
