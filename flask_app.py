@@ -4,7 +4,7 @@ from handlers.mqtt.mqtt_handler import MQTT_handler
 
 mqtt_handler = MQTT_handler()
 
-payload = mqtt_handler.subscribe('song-popularity/predictions', 'trending_now.json')
+payload = mqtt_handler.subscribe('song-popularity/predictions')
 
 exec(f'payload={payload}')
 

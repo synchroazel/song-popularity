@@ -3,6 +3,7 @@ import os
 import pickle
 from datetime import date
 
+import numpy as np
 from sklearn.preprocessing import StandardScaler
 
 from handlers.mqtt.mqtt_handler import MQTT_handler
@@ -66,8 +67,8 @@ def make_predictions(df, songs, artists):
                 "track_name": cur_song,
                 "artist_name": cur_artist,
                 "current_popularity": cur_popularity,
-                "in_6_months": int(preds1[i] * 100),
-                "in_12_months": int(preds2[i] * 100)
+                "in_6_months": np.round(preds1[i]),
+                "in_12_months": np.round(preds2[i])
             }
         )
 
@@ -75,7 +76,8 @@ def make_predictions(df, songs, artists):
 
 
 if __name__ == "__main__":
-    arg_parser = argparse.ArgumentParser(description="Make and public predictions with songs information from MySQL database.")
+    arg_parser = argparse.ArgumentParser(
+        description="Make and public predictions with songs information from MySQL database.")
     arg_parser.add_argument("--mysql_db", type=str, required=True, default=None, help="The MySQL database")
     arg_parser.add_argument("--mysql_host", type=str, required=True, default=None, help="The MySQL host")
     arg_parser.add_argument("--mysql_user", type=str, required=True, default=None, help="The MySQL username")
