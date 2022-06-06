@@ -13,7 +13,7 @@ The serving layer of the system, including an HTML interface through Flask, come
 Simply pull our docker image with:
 
 ```bash
-docker pull ghcr.io/synchroazel/song-popularity-img:latest
+docker pull ghcr.io/synchroazel/song-popularity:latest
 ```
 
 ## Usage
@@ -21,7 +21,7 @@ docker pull ghcr.io/synchroazel/song-popularity-img:latest
 Start the docker image with:
 
 ```bash
-docker start -p -d 8000:8000 ghcr.io/synchroazel/song-popularity-img
+docker start -p -d 8000:8000 ghcr.io/synchroazel/song-popularity
 ```
 
 and navigate to `127.0.0.1:8000` to see the dashboard.
