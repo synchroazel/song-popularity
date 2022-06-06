@@ -21,7 +21,7 @@ docker pull ghcr.io/synchroazel/song-popularity:latest
 Start the docker image with:
 
 ```bash
-docker start -p -d 8000:8000 ghcr.io/synchroazel/song-popularity
+docker run -d -p 8000:8000 ghcr.io/synchroazel/song-popularity
 ```
 
 and navigate to `127.0.0.1:8000` to see the dashboard.
