@@ -6,6 +6,10 @@ from mysql.connector import errorcode
 
 
 class MYSQL_connector:
+    """
+    Includes a set of methods to interact with a MySQL instance
+    """
+
     def __init__(self, user, password, host, database):
         self.user = user
         self.password = password
@@ -16,16 +20,28 @@ class MYSQL_connector:
         self.check_connector()
 
     def open_connection(self):
+        """
+        Opens a connection to a running MySQL instance and to a given database.
+        """
+
         self.cnx = mysql.connector.connect(user=self.user,
                                            password=self.password,
                                            host=self.host,
                                            database=self.database)
 
     def close_connection(self):
+        """
+        Closes a previously opened connection.
+        """
+
         self.cnx.commit()
         self.cnx.close()
 
     def check_connector(self):
+        """
+        Checks if connection was successful. If not, shows the error message.
+        """
+
         try:
             self.open_connection()
         except mysql.connector.Error as err:
@@ -41,10 +57,12 @@ class MYSQL_connector:
                 self.cnx.close()
 
     def execute_query(self, query):
+        """
+        Executes a query given either a statement as a <str> or a .sql file with multiple statements.
+        """
 
         self.open_connection()
 
-        # if query is a file .txt
         if query.endswith('.sql'):
             with open(query) as f:
                 sql_file = f.read()
@@ -59,7 +77,6 @@ class MYSQL_connector:
                     pass
             return ret if len(ret) != 0 else None
 
-        # if query is a simple string
         else:
             mycursor = self.cnx.cursor()
             mycursor.execute(query)
@@ -69,6 +86,9 @@ class MYSQL_connector:
                 return
 
     def insert(self, table, values):
+        """
+        Performs a `INSERT INTO table VALUES values` query.
+        """
 
         query = f'INSERT INTO {table} VALUES {values};'
 
@@ -83,10 +103,13 @@ class MYSQL_connector:
         finally:
             self.close_connection()
 
-    def select(self, table, column, where=None):
+    def select(self, table, column, cond=None):
+        """
+        Performs a `SELECT column FROM table` query, with an optional `WHERE cond` parameter.
+        """
 
-        if where != None:
-            query = f'SELECT {column} FROM {table} WHERE {where};'
+        if cond != None:
+            query = f'SELECT {column} FROM {table} WHERE {cond};'
         else:
             query = f'SELECT {column} FROM {table};'
 
@@ -104,6 +127,9 @@ class MYSQL_connector:
             return ret
 
     def delete_table(self, table):
+        """
+        Performs a `DELETE FROM table` query.
+        """
 
         self.open_connection()
         mycursor = self.cnx.cursor()
@@ -118,6 +144,10 @@ class MYSQL_connector:
             self.close_connection()
 
     def create_pandas_df(self, query_file):
+        """
+        Given a .sql file returns a pandas DataFrame with the resulting table.
+        """
+
         if query_file.endswith('.sql'):
             with open(query_file) as f:
                 sql_file = f.read()

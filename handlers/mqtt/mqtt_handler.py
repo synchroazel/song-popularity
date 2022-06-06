@@ -5,6 +5,9 @@ from paho.mqtt import client as mqtt_client
 
 
 class MQTT_handler:
+    """
+    Includes a set of method to publish and subscribe to/from an MQTT broker.
+    """
 
     def __init__(self, broker='broker.hivemq.com', port=1883):
         self.broker = broker
@@ -15,6 +18,9 @@ class MQTT_handler:
         self.connect_mqtt()
 
     def connect_mqtt(self):
+        """
+        Connect to `broker`:`port` before publishing/subscribing.
+        """
 
         def on_connect(client, userdata, flags, rc):
             if rc == 0:
@@ -29,6 +35,9 @@ class MQTT_handler:
         self.client = client
 
     def publish(self, msg, topic, retain=True):
+        """
+        Publish a given `msg` to a given `topic`.
+        """
 
         self.client.loop_start()
 
@@ -47,6 +56,9 @@ class MQTT_handler:
         print(f'[INFO] Connection with {self.broker}:{self.port} closed.')
 
     def subscribe(self, topic):
+        """
+        Subscribe to a given `topic` and return any available retained msg available.
+        """
 
         def on_message(client, userdata, msg):
             print(f"[INFO] Payload successfully received from {msg.topic} topic.")

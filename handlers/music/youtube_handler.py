@@ -12,12 +12,19 @@ client_secret = secrets.yt_client_secret
 
 
 class YoutubeHandler:
+    """
+    Includes a set of methods to interact with YouTube APIs.
+    """
 
     def __init__(self, api_key=api_key):
         self.api_key = api_key
         self.youtube = build('youtube', 'v3', developerKey=api_key)
 
     def search_song(self, song_name, artist_name, quiet=True):
+        """
+        Returns video id from a song name and its artist's name.
+        """
+
         res = self.search_by_keyword(f'{song_name} {artist_name}', 50, quiet=quiet)
 
         best_result = [item for item in res['items'] if (song_name.lower() in item['snippet']['title'].lower() and
@@ -28,6 +35,10 @@ class YoutubeHandler:
         return self.search_by_id(video_id)
 
     def search_by_keyword(self, query, max_results, quiet=False):
+        """
+        Performs a video search by keyword, and returns the response as dict.
+        """
+
         next_page = ''
         all_titles = list()
         max_results = 50 if max_results > 50 else max_results
@@ -53,6 +64,10 @@ class YoutubeHandler:
         return r
 
     def search_by_id(self, id):
+        """
+        Returns information on a video as a dict from its id.
+        """
+
         request = self.youtube.videos().list(part=["snippet", "statistics"], id=id)
         res = request.execute()
 
