@@ -20,5 +20,6 @@ Thumbs.db
 Dockerfile
 models/*
 secrets.py
+project_report.pdf
 venv
 
