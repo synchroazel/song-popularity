@@ -18,6 +18,5 @@ Thumbs.db
 .cache
 **/__pycache__
 models/*
-secrets.py
 project_report.pdf
 venv
